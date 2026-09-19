@@ -708,6 +708,7 @@ main { max-width: 1200px; margin: 0 auto; padding: 18px 26px; }
   <button class="btn btn-ghost" id="btnManageCourses">⚙️ 大类</button>
   <button class="btn btn-ghost" id="btnExport">📤 导出</button>
 <button class="btn btn-ghost" id="btnImport">📥 导入</button>
+<button class="btn btn-ghost" id="btnCloudSync">☁️ <span id="cloudIndicator">—</span></button>
 <button class="btn btn-ghost" id="btnReset">重置</button>
   <button class="btn btn-primary btn-add" id="btnAdd">+ 添加任务</button>
 </nav>
@@ -1327,10 +1328,20 @@ main { max-width: 1200px; margin: 0 auto; padding: 18px 26px; }
   function persistTasks() {
     try { localStorage.setItem(TASKS_KEY, JSON.stringify(tasks)); }
     catch (e) { alert('存储空间不足！'); throw e; }
+    if (window.cloudSchedulePush) window.cloudSchedulePush();
   }
-  function persistCourses() { localStorage.setItem(COURSES_KEY, JSON.stringify(courses)); }
-  function persistSchedule() { localStorage.setItem(SCHEDULE_KEY, JSON.stringify(schedule)); }
-  function persistGroups() { localStorage.setItem(GROUPS_KEY, JSON.stringify(groups)); }
+  function persistCourses() {
+    localStorage.setItem(COURSES_KEY, JSON.stringify(courses));
+    if (window.cloudSchedulePush) window.cloudSchedulePush();
+  }
+  function persistSchedule() {
+    localStorage.setItem(SCHEDULE_KEY, JSON.stringify(schedule));
+    if (window.cloudSchedulePush) window.cloudSchedulePush();
+  }
+  function persistGroups() {
+    localStorage.setItem(GROUPS_KEY, JSON.stringify(groups));
+    if (window.cloudSchedulePush) window.cloudSchedulePush();
+  }
 
   function getCourse(key) {
     return courses.find(c => c.key === key) || { key, name: key, kind: "academic", color: "#94a3b8" };
@@ -2791,6 +2802,230 @@ main { max-width: 1200px; margin: 0 auto; padding: 18px 26px; }
   });
 })();
 </script>
+<script>
+/* ===== 云同步（JSONBin.io）— 完整版 ===== */
+(function () {
+  const CFG_KEY = 'cloud-config-v1';
+  const LS_KEYS = {
+    tasks: 'tasks-v8',
+    courses: 'courses-v8',
+    schedule: 'schedule-v8',
+    groups: 'groups-v8',
+  };
+
+  function getCfg() {
+    try { return JSON.parse(localStorage.getItem(CFG_KEY) || 'null'); }
+    catch (e) { return null; }
+  }
+  function saveCfg(cfg) {
+    if (cfg) localStorage.setItem(CFG_KEY, JSON.stringify(cfg));
+    else localStorage.removeItem(CFG_KEY);
+  }
+  function setIndicator(text, color) {
+    const el = document.getElementById('cloudIndicator');
+    if (el) { el.textContent = text; el.style.color = color || ''; }
+  }
+  function readLocalData() {
+    const d = { exportedAt: new Date().toISOString() };
+    Object.keys(LS_KEYS).forEach(k => {
+      try { d[k] = JSON.parse(localStorage.getItem(LS_KEYS[k]) || 'null'); }
+      catch (e) { d[k] = null; }
+    });
+    return d;
+  }
+
+  async function pushToCloud() {
+    const cfg = getCfg();
+    if (!cfg || !cfg.binId || !cfg.key) return;
+    setIndicator('上传中…', '#ca8a04');
+    try {
+      const res = await fetch(`https://api.jsonbin.io/v3/b/${cfg.binId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Master-Key': cfg.key,
+        },
+        body: JSON.stringify(readLocalData()),
+      });
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      setIndicator('已同步', '#059669');
+    } catch (e) {
+      console.error('云同步失败', e);
+      setIndicator('同步失败', '#dc2626');
+    }
+  }
+
+  async function pullFromCloud() {
+    const cfg = getCfg();
+    if (!cfg || !cfg.binId || !cfg.key) return false;
+    setIndicator('拉取中…', '#ca8a04');
+    try {
+      const res = await fetch(`https://api.jsonbin.io/v3/b/${cfg.binId}/latest`, {
+        headers: { 'X-Master-Key': cfg.key },
+      });
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      const json = await res.json();
+      const record = json.record || {};
+      let changed = false;
+      Object.keys(LS_KEYS).forEach(k => {
+        if (record[k] !== null && record[k] !== undefined) {
+          const incoming = JSON.stringify(record[k]);
+          const current = localStorage.getItem(LS_KEYS[k]);
+          if (incoming !== current) {
+            localStorage.setItem(LS_KEYS[k], incoming);
+            changed = true;
+          }
+        }
+      });
+      setIndicator(changed ? '已更新' : '已同步', '#059669');
+      return changed;
+    } catch (e) {
+      console.error('云同步失败', e);
+      setIndicator('拉取失败', '#dc2626');
+      return false;
+    }
+  }
+
+  // 防抖推送
+  let pushTimer = null;
+  window.cloudSchedulePush = function () {
+    if (!getCfg()) return;
+    clearTimeout(pushTimer);
+    pushTimer = setTimeout(() => pushToCloud(), 1500);
+  };
+
+  // 主入口
+  function boot() {
+    const btn = document.getElementById('btnCloudSync');
+    const backdrop = document.getElementById('cloudModalBackdrop');
+    const closeBtn = document.getElementById('cloudModalClose');
+    const saveBtn = document.getElementById('cloudSaveCfgBtn');
+    const clearBtn = document.getElementById('cloudClearBtn');
+    const testBtn = document.getElementById('cloudTestBtn');
+    const binIdInput = document.getElementById('cfgBinId');
+    const keyInput = document.getElementById('cfgKey');
+    const statusEl = document.getElementById('cloudStatus');
+
+    console.log('[云同步] 初始化中...',
+      { btn: !!btn, backdrop: !!backdrop, saveBtn: !!saveBtn });
+
+    if (!btn) { console.warn('[云同步] ❌ 找不到按钮 #btnCloudSync'); return; }
+    if (!backdrop) { console.warn('[云同步] ❌ 找不到弹窗 #cloudModalBackdrop'); return; }
+    if (!saveBtn) { console.warn('[云同步] ❌ 找不到保存按钮 #cloudSaveCfgBtn'); return; }
+
+    function openModal() {
+      const cfg = getCfg() || {};
+      binIdInput.value = cfg.binId || '';
+      keyInput.value = cfg.key || '';
+      const ind = document.getElementById('cloudIndicator');
+      statusEl.textContent = cfg.binId
+        ? '已配置 · ' + (ind ? ind.textContent : '—')
+        : '未配置';
+      statusEl.style.color = '';
+      backdrop.classList.add('show');
+    }
+    function closeModal() { backdrop.classList.remove('show'); }
+
+    btn.onclick = openModal;
+    closeBtn.onclick = closeModal;
+    backdrop.onmousedown = e => { if (e.target === backdrop) closeModal(); };
+
+    saveBtn.onclick = async () => {
+      const binId = binIdInput.value.trim();
+      const key = keyInput.value.trim();
+      if (!binId || !key) { alert('请填写 Bin ID 和 Key'); return; }
+      saveCfg({ binId, key });
+      closeModal();
+      await pullFromCloud();
+      await pushToCloud();
+      alert('✅ 已保存，页面将刷新以载入云端数据');
+      location.reload();
+    };
+
+    clearBtn.onclick = () => {
+      if (!confirm('清除云同步配置？本机数据不受影响。')) return;
+      saveCfg(null);
+      closeModal();
+      setIndicator('未配置', '#94a3b8');
+    };
+
+    testBtn.onclick = async () => {
+      const binId = binIdInput.value.trim();
+      const key = keyInput.value.trim();
+      if (!binId || !key) { alert('请先填写'); return; }
+      statusEl.textContent = '测试中…';
+      statusEl.style.color = '';
+      try {
+        const res = await fetch(`https://api.jsonbin.io/v3/b/${binId}/latest`, {
+          headers: { 'X-Master-Key': key },
+        });
+        if (res.ok) {
+          statusEl.textContent = '✅ 连接成功';
+          statusEl.style.color = '#059669';
+        } else {
+          statusEl.textContent = '❌ 失败：HTTP ' + res.status;
+          statusEl.style.color = '#dc2626';
+        }
+      } catch (e) {
+        statusEl.textContent = '❌ 网络错误';
+        statusEl.style.color = '#dc2626';
+      }
+    };
+
+    // 尝试自动拉取
+    const cfg = getCfg();
+    if (cfg) {
+      pullFromCloud().then(changed => {
+        if (changed) {
+          if (confirm('云端有更新，是否立即载入？')) location.reload();
+        }
+      });
+    } else {
+      setIndicator('未配置', '#94a3b8');
+    }
+  }
+
+  // 关键：不管 DOM 是否就绪，都尝试初始化
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', boot);
+  } else {
+    // DOM 已经就绪，等一小会让其他脚本先跑
+    setTimeout(boot, 0);
+  }
+})();
+</script>
 <input type="file" id="importFileInput" accept=".json,application/json" style="display:none;">
+<!-- 云同步设置弹窗 -->
+<div class="modal-backdrop" id="cloudModalBackdrop">
+  <div class="modal">
+    <div class="modal-head">
+      <h3>☁️ 云同步设置</h3>
+      <button id="cloudModalClose" type="button">×</button>
+    </div>
+    <div class="modal-body">
+      <p style="font-size:12px;color:#64748b;margin-bottom:12px;">
+        填入 JSONBin 的 Bin ID 和 X-Master-Key，即可实现电脑/手机自动同步。
+        信息只保存在本机浏览器，不会上传到 GitHub。
+      </p>
+      <div class="form-row">
+        <label>Bin ID</label>
+        <input type="text" id="cfgBinId" placeholder="如：6aae48abac6210605adf250e">
+      </div>
+      <div class="form-row">
+        <label>X-Master-Key</label>
+        <input type="text" id="cfgKey" placeholder="$2a$10$...">
+      </div>
+      <div id="cloudStatus" style="font-size:12px;color:#64748b;padding:8px 10px;background:#f8fafc;border-radius:6px;margin-top:8px;">
+        未配置
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn-danger" id="cloudClearBtn" type="button">清除配置</button>
+      <div style="flex:1"></div>
+      <button class="btn btn-ghost" id="cloudTestBtn" type="button">测试连接</button>
+      <button class="btn btn-primary" id="cloudSaveCfgBtn" type="button">保存并同步</button>
+    </div>
+  </div>
+</div>
 </body>
 </html>
