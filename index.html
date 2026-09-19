@@ -1,0 +1,2796 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>2026-27 学业与时间管理</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+  background: #eef1f6; color: #1f2937; line-height: 1.55; padding-bottom: 80px;
+}
+.topbar {
+  background: #1e293b; color: #fff; padding: 12px 26px;
+  display: flex; flex-wrap: wrap; gap: 14px; align-items: center;
+  justify-content: space-between; position: sticky; top: 0; z-index: 50;
+  box-shadow: 0 2px 12px rgba(0,0,0,.15);
+}
+.topbar h1 { font-size: 16px; font-weight: 700; }
+.topbar .subtitle { font-size: 11px; color: #94a3b8; margin-top: 2px; }
+.stats { display: flex; gap: 18px; }
+.stat { text-align: center; }
+.stat span { display: block; font-size: 18px; font-weight: 700; line-height: 1.1; }
+.stat small { font-size: 10px; color: #94a3b8; }
+#statNext { font-size: 12px !important; font-weight: 600 !important; }
+.toolbar {
+  background: #fff; border-bottom: 1px solid #e2e8f0;
+  padding: 8px 26px; display: flex; flex-wrap: wrap; gap: 8px;
+  align-items: center; position: sticky; top: 64px; z-index: 40;
+}
+.view-switch { display: flex; background: #f1f5f9; border-radius: 7px; padding: 3px; gap: 2px; }
+.view-switch button {
+  border: 0; background: transparent; padding: 5px 12px; border-radius: 5px;
+  font-size: 12.5px; cursor: pointer; color: #64748b; font-family: inherit;
+}
+.view-switch button.active {
+  background: #fff; color: #1e293b; font-weight: 600;
+  box-shadow: 0 1px 3px rgba(0,0,0,.08);
+}
+.filters { display: flex; gap: 5px; flex-wrap: wrap; align-items: center; }
+.chip {
+  border: 1px solid #cbd5e1; background: #fff; color: #475569;
+  padding: 3px 10px; border-radius: 999px; font-size: 11.5px;
+  cursor: pointer; font-family: inherit;
+}
+.chip:hover { border-color: #94a3b8; background: #f8fafc; }
+.chip.active { background: #1e293b; color: #fff; border-color: #1e293b; }
+.btn {
+  border: 0; border-radius: 7px; padding: 5px 12px; font-size: 12px;
+  font-weight: 600; cursor: pointer; font-family: inherit;
+}
+.btn-primary { background: #2563eb; color: #fff; }
+.btn-primary:hover { background: #1d4ed8; }
+.btn-ghost { background: #fff; color: #475569; border: 1px solid #cbd5e1; }
+.btn-ghost:hover { background: #f1f5f9; }
+.btn-add { margin-left: auto; }
+.toggle-hide {
+  font-size: 11.5px; color: #64748b; display: inline-flex;
+  align-items: center; gap: 5px; cursor: pointer; user-select: none;
+}
+main { max-width: 1200px; margin: 0 auto; padding: 18px 26px; }
+.month-group { margin-bottom: 24px; }
+.month-title {
+  font-size: 13px; font-weight: 700; color: #64748b; letter-spacing: .5px;
+  margin-bottom: 10px; padding-left: 10px; border-left: 4px solid #cbd5e1;
+}
+.card {
+  background: #fff; border-radius: 10px; padding: 12px 14px 10px 18px;
+  margin-bottom: 9px; position: relative;
+  box-shadow: 0 1px 3px rgba(15,23,42,.06);
+}
+.card::before {
+  content: ""; position: absolute; left: 0; top: 0; bottom: 0;
+  width: 5px; background: var(--accent, #94a3b8); border-radius: 10px 0 0 10px;
+}
+.card.done { opacity: .5; }
+.card.done .task-name { text-decoration: line-through; }
+.card.milestone { box-shadow: 0 0 0 2px #fbbf24 inset, 0 2px 8px rgba(251,191,36,.18); }
+
+/* 类型：任务 / 事件 / 目标 */
+.card.type-goal { border: 1px dashed #cbd5e1; }
+.card.type-event { background: #fafbfc; }
+
+/* 大类：生活事务 —— 弱化视觉 */
+.card.kind-life {
+  background: #fafbfc;
+  border: 1px dashed #e2e8f0;
+  box-shadow: none;
+  padding: 10px 14px 8px 18px;
+}
+.card.kind-life::before {
+  width: 3px;
+  opacity: 0.45;
+}
+.card.kind-life .task-name {
+  font-size: 13.5px;
+  font-weight: 500;
+  color: #64748b;
+}
+.card.kind-life .badge { opacity: 0.65; }
+.card.kind-life .assignment-label { opacity: 0.7; font-size: 11px; }
+.card.kind-life .countdown {
+  background: #f1f5f9 !important;
+  color: #94a3b8 !important;
+  font-weight: 500;
+}
+
+/* 大类：个人学习 —— 中性但可辨识 */
+.card.kind-learning {
+  border-left: 0;
+}
+.card.kind-learning .task-name { color: #0e7490; }
+
+.card-head {
+  display: flex; align-items: center; gap: 7px; flex-wrap: wrap;
+  margin-bottom: 4px;
+}
+.badge { font-size: 10.5px; font-weight: 700; padding: 2px 8px; border-radius: 5px; }
+.type-tag {
+  font-size: 10px; font-weight: 700; padding: 2px 7px;
+  border-radius: 4px; letter-spacing: .3px;
+}
+.type-tag.task { background: #dbeafe; color: #1d4ed8; }
+.type-tag.event { background: #f1f5f9; color: #64748b; }
+.type-tag.goal { background: #fef3c7; color: #b45309; }
+.deadline-tag {
+  font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 4px;
+}
+.deadline-tag.hard { background: #fef2f2; color: #dc2626; }
+.deadline-tag.soft { background: #f0f9ff; color: #0369a1; }
+.assignment-label { font-size: 11.5px; color: #64748b; }
+.group-tag {
+  font-size: 10px; font-weight: 700; padding: 2px 7px;
+  border-radius: 4px; background: #ecfdf5; color: #047857;
+}
+.weight-label {
+  font-size: 10.5px; color: #94a3b8; margin-left: auto;
+  background: #f1f5f9; padding: 2px 8px; border-radius: 4px;
+}
+.task-name {
+  font-size: 14.5px; font-weight: 600; margin-bottom: 5px;
+  display: inline-block; padding: 1px 5px; border-radius: 4px;
+  border: 1px dashed transparent; cursor: text;
+}
+.task-name:hover { border-color: #cbd5e1; background: #f8fafc; }
+.meta-row {
+  display: flex; gap: 8px; flex-wrap: wrap; align-items: center;
+  font-size: 12px; margin-bottom: 7px;
+}
+.date-display {
+  color: #475569; cursor: pointer; padding: 1px 5px;
+  border-radius: 4px; border: 1px dashed transparent;
+}
+.date-display:hover { border-color: #cbd5e1; background: #f8fafc; }
+.location-display {
+  font-size: 11.5px; color: #7c3aed;
+  background: #f3e8ff; padding: 2px 8px; border-radius: 5px;
+}
+.link-btn {
+  font-size: 11.5px; color: #2563eb; text-decoration: none;
+  background: #eff6ff; padding: 2px 8px; border-radius: 5px;
+}
+.link-btn:hover { background: #dbeafe; text-decoration: underline; }
+.countdown { font-size: 11px; font-weight: 700; padding: 2px 9px; border-radius: 999px; }
+.countdown.normal  { background: #ecfdf5; color: #059669; }
+.countdown.soon    { background: #fefce8; color: #ca8a04; }
+.countdown.warning { background: #fff7ed; color: #ea580c; }
+.countdown.urgent  { background: #fef2f2; color: #dc2626; }
+.countdown.overdue { background: #f1f5f9; color: #94a3b8; }
+.countdown.event   { background: #f1f5f9; color: #64748b; }
+.countdown.goal    { background: #fef3c7; color: #b45309; }
+.note-text {
+  font-size: 11.5px; color: #94a3b8; background: #f8fafc;
+  border-left: 2px solid #e2e8f0; padding: 4px 10px;
+  border-radius: 0 5px 5px 0; margin-bottom: 7px;
+}
+.attachments-row { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 7px; }
+.att-thumb {
+  width: 50px; height: 50px; border-radius: 6px;
+  border: 1px solid #e2e8f0; overflow: hidden; cursor: pointer;
+  background: #f8fafc; position: relative;
+  display: flex; align-items: center; justify-content: center;
+}
+.att-thumb:hover { border-color: #2563eb; box-shadow: 0 0 0 2px rgba(37,99,235,.15); }
+.att-thumb img { width: 100%; height: 100%; object-fit: cover; }
+.att-thumb.pdf { background: #fef2f2; color: #dc2626; flex-direction: column; }
+.att-thumb.pdf svg { width: 18px; height: 18px; }
+.att-thumb .att-name-tip {
+  position: absolute; bottom: 0; left: 0; right: 0;
+  background: rgba(0,0,0,.65); color: #fff; font-size: 8px; padding: 1px 3px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: none;
+}
+.att-thumb:hover .att-name-tip { display: block; }
+.progress-row {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 11px; color: #64748b; margin-bottom: 7px;
+}
+.progress-bar {
+  flex: 1; height: 5px; background: #e2e8f0; border-radius: 999px;
+  overflow: hidden; max-width: 180px;
+}
+.progress-fill { height: 100%; background: #2563eb; border-radius: 999px; }
+.card-actions {
+  display: flex; align-items: center; gap: 8px;
+  padding-top: 7px; border-top: 1px solid #f1f5f9;
+}
+.check-done {
+  display: inline-flex; align-items: center; gap: 5px;
+  font-size: 11.5px; color: #64748b; cursor: pointer; user-select: none;
+}
+.check-done input { cursor: pointer; accent-color: #1e293b; }
+.icon-btn {
+  background: transparent; border: 0; font-size: 11.5px; color: #64748b;
+  cursor: pointer; padding: 3px 8px; border-radius: 5px; font-family: inherit;
+}
+.icon-btn:hover { background: #f1f5f9; color: #1e293b; }
+.icon-btn.danger:hover { background: #fef2f2; color: #dc2626; }
+
+.cal-nav {
+  display: flex; align-items: center; gap: 10px;
+  margin-bottom: 12px; flex-wrap: wrap;
+}
+.cal-nav h2 { font-size: 15px; font-weight: 700; }
+.cal-nav button {
+  background: #fff; border: 1px solid #cbd5e1; padding: 5px 12px;
+  border-radius: 6px; font-size: 12.5px; cursor: pointer;
+  font-family: inherit; color: #475569;
+}
+.cal-nav .today-btn { margin-left: auto; }
+.cal-grid {
+  display: grid; grid-template-columns: repeat(7, 1fr); gap: 1px;
+  background: #e2e8f0; border: 1px solid #e2e8f0;
+  border-radius: 10px; overflow: hidden;
+}
+.cal-head {
+  background: #f8fafc; padding: 7px 6px; text-align: center;
+  font-size: 11.5px; font-weight: 600; color: #64748b;
+}
+.cal-cell {
+  background: #fff; min-height: 110px; padding: 5px;
+  font-size: 11.5px; position: relative; cursor: pointer;
+}
+.cal-cell:hover { background: #f8fafc; }
+.cal-cell.other-month { background: #fafbfc; }
+.cal-cell.today { background: #eff6ff; }
+.cal-day-num {
+  font-size: 11px; color: #94a3b8; font-weight: 600; margin-bottom: 4px;
+}
+.cal-cell.today .cal-day-num { color: #2563eb; font-weight: 700; }
+.mini-task {
+  font-size: 9.5px; padding: 2px 5px; border-radius: 4px;
+  margin-bottom: 3px; cursor: pointer;
+  border-left: 3px solid var(--c, #94a3b8);
+  background: #f8fafc; line-height: 1.3;
+}
+.mini-task:hover { background: #eff6ff; }
+.mini-task.done { opacity: .45; }
+.mini-task.done .mt-name { text-decoration: line-through; }
+.mini-task.type-event { background: #f1f5f9; }
+.mini-task.type-goal { border-style: dashed; background: #fffbeb; }
+.mini-task.kind-life {
+  background: #fafbfc;
+  border-left-style: dashed;
+  opacity: 0.85;
+}
+.mini-task.kind-life .mt-name { color: #64748b; font-weight: 500; }
+.mini-task .mt-row1 {
+  display: flex; align-items: center; gap: 4px;
+  font-size: 9px; color: #64748b;
+}
+.mini-task .mt-course { font-weight: 700; color: var(--c, #64748b); }
+.mini-task .mt-time { margin-left: auto; color: #94a3b8; }
+.mini-task .mt-name {
+  font-weight: 600; color: #1e293b; display: block; margin-top: 1px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.mini-task .mt-hard { color: #dc2626; font-weight: 700; }
+.mini-task .mt-soft { color: #0369a1; font-weight: 600; }
+.mini-task .mt-loc {
+  display: inline-block; color: #7c3aed; font-weight: 600;
+  font-size: 9px; margin-top: 1px;
+}
+.more-tag { font-size: 9.5px; color: #94a3b8; padding-left: 4px; }
+
+.week-grid {
+  display: grid; grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 1px; background: #e2e8f0; border: 1px solid #e2e8f0;
+  border-radius: 10px; overflow: hidden; min-height: 340px;
+}
+.week-col {
+  background: #fff; padding: 10px 8px; min-height: 340px;
+  cursor: pointer;
+}
+.week-col:hover { background: #f8fafc; }
+.week-col.today { background: #eff6ff; }
+.week-head {
+  font-size: 11.5px; font-weight: 600; color: #64748b;
+  margin-bottom: 8px; padding-bottom: 6px; border-bottom: 1px solid #f1f5f9;
+}
+.week-head .wd { display: block; }
+.week-head .dd { font-size: 14px; color: #1e293b; }
+.week-col.today .week-head .dd { color: #2563eb; }
+.week-task {
+  font-size: 11.5px; padding: 7px 9px; border-radius: 6px;
+  margin-bottom: 6px; cursor: pointer;
+  border-left: 3px solid var(--c, #94a3b8); background: #f8fafc;
+}
+.week-task:hover { background: #eff6ff; }
+.week-task.done { opacity: .5; }
+.week-task.done .wt-name { text-decoration: line-through; }
+.week-task.type-event { background: #f1f5f9; }
+.week-task.type-goal { border-style: dashed; background: #fffbeb; }
+.week-task.kind-life {
+  background: #fafbfc;
+  border-left-style: dashed;
+  opacity: 0.85;
+}
+.week-task.kind-life .wt-name { color: #64748b; font-weight: 500; }
+.week-task .wt-row1 {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 10px; color: #64748b; margin-bottom: 2px;
+}
+.week-task .wt-course { font-weight: 700; color: var(--c, #64748b); }
+.week-task .wt-time { margin-left: auto; color: #94a3b8; }
+.week-task .wt-name {
+  font-weight: 600; color: #1e293b; display: block; margin-bottom: 2px;
+}
+.week-task .wt-loc {
+  font-size: 10px; color: #7c3aed; font-weight: 600;
+  display: inline-block; background: #f3e8ff;
+  padding: 1px 6px; border-radius: 3px; margin-top: 2px;
+}
+.no-task { font-size: 11px; color: #cbd5e1; font-style: italic; }
+
+/* 课表视图 */
+.schedule-grid {
+  display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px;
+  background: #e2e8f0; padding: 8px; border-radius: 12px;
+}
+.schedule-col {
+  background: #fff; border-radius: 8px; padding: 10px 8px;
+  min-height: 300px;
+}
+.schedule-col.today { background: #eff6ff; }
+.schedule-head {
+  font-size: 12px; font-weight: 700; color: #64748b;
+  text-align: center; padding-bottom: 8px; margin-bottom: 8px;
+  border-bottom: 1px solid #f1f5f9;
+}
+.schedule-col.today .schedule-head { color: #2563eb; }
+.schedule-item {
+  background: #f8fafc; border-left: 3px solid var(--c, #94a3b8);
+  padding: 7px 8px; border-radius: 5px; margin-bottom: 6px;
+  cursor: pointer; font-size: 11px; position: relative;
+}
+.schedule-item:hover { background: #eff6ff; }
+.schedule-item .sc-time {
+  font-size: 10.5px; color: #64748b; font-weight: 600;
+  display: block; margin-bottom: 2px;
+}
+.schedule-item .sc-code {
+  font-weight: 700; color: #1e293b; font-size: 11.5px;
+  display: block;
+}
+.schedule-item .sc-name {
+  font-size: 10px; color: #64748b; display: block;
+  margin-top: 1px; line-height: 1.3;
+}
+.schedule-item .sc-loc {
+  font-size: 10px; color: #7c3aed; margin-top: 3px;
+  display: inline-block; background: #f3e8ff;
+  padding: 1px 6px; border-radius: 3px; font-weight: 600;
+}
+.schedule-item .sc-del {
+  position: absolute; top: 3px; right: 3px;
+  background: transparent; border: 0; color: #cbd5e1;
+  cursor: pointer; font-size: 14px; line-height: 1;
+  font-family: inherit; padding: 0 3px; display: none;
+}
+.schedule-item:hover .sc-del { display: block; }
+.schedule-item .sc-del:hover { color: #dc2626; }
+
+/* 小组视图 */
+.groups-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 14px;
+}
+.group-card {
+  background: #fff; border-radius: 10px; padding: 14px 16px;
+  border-left: 5px solid var(--c, #94a3b8);
+  box-shadow: 0 1px 3px rgba(15,23,42,.06);
+  cursor: pointer;
+  transition: all .15s;
+}
+.group-card:hover { box-shadow: 0 4px 14px rgba(15,23,42,.10); transform: translateY(-1px); }
+.group-card-head {
+  display: flex; align-items: center; gap: 8px; margin-bottom: 8px;
+}
+.group-card .gc-course {
+  font-size: 11px; font-weight: 700; padding: 2px 8px;
+  border-radius: 5px;
+}
+.group-card .gc-num {
+  font-size: 15px; font-weight: 700; color: #1e293b;
+}
+.group-card .gc-count {
+  margin-left: auto; font-size: 11px; color: #94a3b8;
+}
+.group-card .gc-members {
+  font-size: 12px; color: #64748b; margin-bottom: 6px;
+  line-height: 1.5;
+}
+.group-card .gc-members strong { color: #1e293b; font-weight: 600; }
+.group-card .gc-tasks {
+  font-size: 11.5px; color: #64748b;
+  border-top: 1px solid #f1f5f9; padding-top: 6px;
+  display: flex; flex-direction: column; gap: 3px;
+}
+.group-card .gc-task-item {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 11px;
+}
+.group-card .gc-task-item .gti-date {
+  color: #94a3b8; font-size: 10px; min-width: 42px;
+}
+.group-card .gc-task-item .gti-name {
+  color: #334155; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+
+.inline-input {
+  font-family: inherit; font-size: inherit; font-weight: inherit;
+  border: 1px solid #2563eb; border-radius: 4px; padding: 1px 5px;
+  outline: none; background: #fff; color: inherit; min-width: 130px;
+}
+
+.modal-backdrop {
+  position: fixed; inset: 0; background: rgba(15,23,42,.55);
+  display: none; align-items: center; justify-content: center;
+  z-index: 100; padding: 20px;
+}
+.modal-backdrop.show { display: flex; }
+.modal {
+  background: #fff; border-radius: 14px; width: 100%; max-width: 580px;
+  max-height: 92vh; display: flex; flex-direction: column;
+  box-shadow: 0 20px 60px rgba(0,0,0,.3); overflow: hidden;
+}
+.modal.wide { max-width: 720px; }
+.modal.extra-wide { max-width: 900px; }
+.modal-head {
+  padding: 14px 20px; border-bottom: 1px solid #e2e8f0;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.modal-head h3 { font-size: 15px; font-weight: 700; }
+.modal-head button {
+  background: transparent; border: 0; font-size: 22px; color: #94a3b8;
+  cursor: pointer; line-height: 1; padding: 0 4px; font-family: inherit;
+}
+.modal-body { padding: 16px 20px; overflow-y: auto; flex: 1; }
+.form-row { margin-bottom: 11px; }
+.form-row label {
+  display: block; font-size: 12px; color: #64748b;
+  font-weight: 600; margin-bottom: 4px;
+}
+.form-row label .hint { font-weight: 400; color: #94a3b8; margin-left: 4px; }
+.form-row input[type="text"],
+.form-row input[type="url"],
+.form-row input[type="time"],
+.form-row input[type="datetime-local"],
+.form-row select,
+.form-row textarea {
+  width: 100%; border: 1px solid #cbd5e1; border-radius: 6px;
+  padding: 7px 10px; font-size: 13px; font-family: inherit;
+  outline: none; color: #1e293b; background: #fff;
+}
+.form-row input:focus, .form-row select:focus, .form-row textarea:focus {
+  border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37,99,235,.1);
+}
+.form-row textarea { resize: vertical; min-height: 46px; }
+.form-row-2col { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.form-row-3col { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+
+.type-picker { display: flex; gap: 6px; flex-wrap: wrap; }
+.type-picker button {
+  flex: 1; min-width: 100px;
+  background: #fff; border: 2px solid #e2e8f0; border-radius: 8px;
+  padding: 8px 10px; cursor: pointer; font-family: inherit;
+  text-align: left; transition: all .15s;
+}
+.type-picker button .tp-label {
+  font-size: 12.5px; font-weight: 700; color: #1e293b;
+  display: block; margin-bottom: 2px;
+}
+.type-picker button .tp-desc {
+  font-size: 10.5px; color: #94a3b8; display: block; line-height: 1.3;
+}
+.type-picker button:hover { border-color: #94a3b8; }
+.type-picker button.active { border-color: #2563eb; background: #eff6ff; }
+.type-picker button.active .tp-label { color: #1d4ed8; }
+
+.progress-slider-row { display: flex; align-items: center; gap: 10px; }
+.progress-slider-row input[type="range"] { flex: 1; accent-color: #2563eb; }
+.progress-val {
+  font-size: 13px; font-weight: 700; color: #2563eb;
+  min-width: 42px; text-align: right;
+}
+.subtasks-head {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 6px;
+}
+.subtasks-head span { font-size: 12px; color: #64748b; font-weight: 600; }
+.btn-sm {
+  background: #f1f5f9; border: 0; border-radius: 5px; padding: 3px 10px;
+  font-size: 11.5px; color: #475569; cursor: pointer; font-family: inherit;
+}
+.subtask-list {
+  list-style: none; border: 1px solid #e2e8f0; border-radius: 7px;
+  padding: 6px; background: #fafbfc; min-height: 42px;
+}
+.subtask-list:empty::before {
+  content: "暂无子任务"; font-size: 12px; color: #cbd5e1;
+  display: block; text-align: center; padding: 8px 0;
+}
+.subtask-item { display: flex; align-items: center; gap: 6px; margin-bottom: 4px; }
+.subtask-item input[type="checkbox"] { accent-color: #2563eb; cursor: pointer; }
+.subtask-item input[type="text"] {
+  flex: 1; border: 1px solid transparent; background: transparent;
+  padding: 4px 6px; font-size: 12.5px; border-radius: 4px;
+  font-family: inherit; outline: none;
+}
+.subtask-item input[type="text"]:focus { border-color: #2563eb; background: #fff; }
+.subtask-item .del-sub {
+  background: transparent; border: 0; color: #cbd5e1; cursor: pointer;
+  font-size: 16px; line-height: 1; padding: 0 4px; font-family: inherit;
+}
+.subtask-item .del-sub:hover { color: #dc2626; }
+
+.attachments-head {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 6px;
+}
+.attachments-head span { font-size: 12px; color: #64748b; font-weight: 600; }
+.attachments-head .hint { font-weight: 400; color: #94a3b8; font-size: 11px; }
+.att-list {
+  display: flex; flex-wrap: wrap; gap: 8px;
+  border: 1px dashed #cbd5e1; border-radius: 7px;
+  padding: 8px; background: #fafbfc; min-height: 62px;
+}
+.att-list:empty::before {
+  content: "暂无附件 · 点击右侧「+ 上传」添加图片或 PDF";
+  font-size: 11.5px; color: #cbd5e1;
+  display: block; width: 100%; text-align: center; padding: 12px 0;
+}
+.att-item {
+  width: 70px; height: 70px; border-radius: 6px;
+  border: 1px solid #e2e8f0; overflow: hidden;
+  position: relative; background: #fff;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+}
+.att-item:hover { border-color: #2563eb; box-shadow: 0 0 0 2px rgba(37,99,235,.15); }
+.att-item img { width: 100%; height: 100%; object-fit: cover; }
+.att-item.pdf { background: #fef2f2; color: #dc2626; flex-direction: column; }
+.att-item.pdf svg { width: 22px; height: 22px; }
+.att-item .att-del {
+  position: absolute; top: 2px; right: 2px;
+  background: rgba(220,38,38,.9); color: #fff;
+  border: 0; border-radius: 50%; width: 18px; height: 18px;
+  display: none; align-items: center; justify-content: center;
+  cursor: pointer; font-size: 12px; font-family: inherit; padding: 0;
+}
+.att-item:hover .att-del { display: flex; }
+.att-item .att-name {
+  position: absolute; bottom: 0; left: 0; right: 0;
+  background: rgba(0,0,0,.7); color: #fff; font-size: 8.5px;
+  padding: 2px 4px; white-space: nowrap; overflow: hidden;
+  text-overflow: ellipsis; display: none;
+}
+.att-item:hover .att-name { display: block; }
+
+.modal-foot {
+  padding: 12px 20px; border-top: 1px solid #e2e8f0;
+  display: flex; gap: 8px; align-items: center; background: #f8fafc;
+}
+.btn-danger {
+  background: transparent; color: #dc2626; border: 1px solid #fecaca;
+  padding: 8px 14px; border-radius: 7px; font-size: 13px;
+  cursor: pointer; font-family: inherit;
+}
+.lightbox {
+  position: fixed; inset: 0; background: rgba(0,0,0,.9);
+  display: none; align-items: center; justify-content: center;
+  z-index: 200; padding: 30px; cursor: zoom-out;
+}
+.lightbox.show { display: flex; }
+.lightbox img { max-width: 100%; max-height: 100%; object-fit: contain; }
+.lightbox-close {
+  position: absolute; top: 20px; right: 26px;
+  background: rgba(255,255,255,.15); color: #fff;
+  border: 0; border-radius: 50%; width: 40px; height: 40px;
+  font-size: 24px; cursor: pointer; font-family: inherit;
+}
+.courses-table { width: 100%; border-collapse: collapse; margin-bottom: 12px; }
+.courses-table th {
+  font-size: 11px; color: #64748b; font-weight: 600;
+  text-align: left; padding: 6px 8px; background: #f8fafc;
+  border-bottom: 1px solid #e2e8f0;
+}
+.courses-table td {
+  padding: 6px 8px; border-bottom: 1px solid #f1f5f9;
+  font-size: 13px; vertical-align: middle;
+}
+.courses-table input[type="text"], .courses-table select {
+  width: 100%; border: 1px solid #cbd5e1; border-radius: 5px;
+  padding: 5px 8px; font-size: 12.5px; font-family: inherit;
+}
+.courses-table input[type="color"] {
+  width: 36px; height: 30px; border: 1px solid #cbd5e1;
+  border-radius: 5px; cursor: pointer; padding: 2px;
+}
+.courses-table .key {
+  font-family: ui-monospace, monospace; font-size: 11.5px;
+  color: #64748b; background: #f1f5f9; padding: 2px 6px; border-radius: 3px;
+}
+.courses-table .del-row {
+  background: transparent; border: 0; color: #cbd5e1;
+  cursor: pointer; font-size: 17px; padding: 0 6px; font-family: inherit;
+}
+.courses-table .del-row:hover { color: #dc2626; }
+
+/* 小组成员编辑 */
+.member-chips {
+  display: flex; flex-wrap: wrap; gap: 5px;
+  border: 1px solid #cbd5e1; border-radius: 6px;
+  padding: 6px 8px; background: #fff; min-height: 40px;
+}
+.member-chip {
+  background: #eff6ff; color: #1d4ed8;
+  padding: 3px 8px; border-radius: 999px; font-size: 12px;
+  display: inline-flex; align-items: center; gap: 4px;
+}
+.member-chip button {
+  background: transparent; border: 0; color: #1d4ed8;
+  cursor: pointer; font-size: 14px; line-height: 1; padding: 0;
+  font-family: inherit;
+}
+.member-chip button:hover { color: #dc2626; }
+.member-input {
+  border: 1px dashed #cbd5e1; border-radius: 6px;
+  padding: 5px 10px; font-size: 12.5px; font-family: inherit;
+  outline: none; margin-top: 6px; width: 100%;
+  background: #f8fafc;
+}
+.member-input:focus { border-color: #2563eb; background: #fff; border-style: solid; }
+
+.empty {
+  text-align: center; color: #94a3b8; padding: 50px 20px; font-size: 14px;
+}
+.empty .big { font-size: 40px; margin-bottom: 10px; }
+.upload-toast {
+  position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%);
+  background: #1e293b; color: #fff; padding: 10px 20px;
+  border-radius: 8px; font-size: 13px; z-index: 300;
+  box-shadow: 0 4px 20px rgba(0,0,0,.3); display: none;
+}
+.upload-toast.show { display: block; }
+
+@media (max-width: 760px) {
+  .topbar { padding: 12px 16px; }
+  .toolbar { padding: 8px 16px; position: static; }
+  main { padding: 14px; }
+  .schedule-grid, .week-grid { overflow-x: auto; }
+  .form-row-3col { grid-template-columns: 1fr; }
+  .groups-grid { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div>
+    <h1>📚 2026-27 学业与时间管理</h1>
+    <p class="subtitle">任务 · 事件 · 目标 · 课表 · 小组 · 附件 ≤ 10MB</p>
+  </div>
+  <div class="stats">
+    <div class="stat"><span id="statUpcoming">0</span><small>待完成</small></div>
+    <div class="stat"><span id="statDone">0</span><small>已完成</small></div>
+    <div class="stat"><span id="statNext">—</span><small>最近截止</small></div>
+  </div>
+</header>
+
+<nav class="toolbar">
+  <div class="view-switch" id="viewSwitch">
+    <button data-view="list" class="active">列表</button>
+    <button data-view="month">月视图</button>
+    <button data-view="week">周视图</button>
+    <button data-view="schedule">课表</button>
+    <button data-view="groups">小组</button>
+  </div>
+  <div class="filters" id="courseFilters"></div>
+  <div class="filters" id="typeFilters">
+    <button class="chip active" data-type="all">全部</button>
+    <button class="chip" data-type="individual">个人</button>
+    <button class="chip" data-type="group">小组</button>
+  </div>
+  <label class="toggle-hide">
+    <input type="checkbox" id="hideDone"> 隐藏已完成
+  </label>
+  <button class="btn btn-ghost" id="btnManageCourses">⚙️ 大类</button>
+  <button class="btn btn-ghost" id="btnExport">📤 导出</button>
+<button class="btn btn-ghost" id="btnImport">📥 导入</button>
+<button class="btn btn-ghost" id="btnReset">重置</button>
+  <button class="btn btn-primary btn-add" id="btnAdd">+ 添加任务</button>
+</nav>
+
+<main id="app"></main>
+
+<!-- 任务模态框 -->
+<div class="modal-backdrop" id="modalBackdrop">
+  <div class="modal">
+    <div class="modal-head">
+      <h3 id="modalTitle">编辑任务</h3>
+      <button id="modalClose" type="button">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row">
+        <label>类型 <span class="hint">（决定显示方式）</span></label>
+        <div class="type-picker" id="typePicker">
+          <button type="button" data-type-val="task">
+            <span class="tp-label">📋 任务</span>
+            <span class="tp-desc">有交付物、有截止日期</span>
+          </button>
+          <button type="button" data-type-val="event">
+            <span class="tp-label">📅 事件</span>
+            <span class="tp-desc">时间点标记，不需完成</span>
+          </button>
+          <button type="button" data-type-val="goal">
+            <span class="tp-label">🎯 目标</span>
+            <span class="tp-desc">长期目标，通过里程碑记录</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="form-row" id="deadlineTypeRow">
+        <label>截止性质 <span class="hint">（仅任务）</span></label>
+        <div class="type-picker" id="deadlinePicker">
+          <button type="button" data-dl-val="hard">
+            <span class="tp-label">❗ 硬截止</span>
+            <span class="tp-desc">Moodle 提交、报告、答辩</span>
+          </button>
+          <button type="button" data-dl-val="soft">
+            <span class="tp-label">⏱ 软截止</span>
+            <span class="tp-desc">路演、活动、约见</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <label>任务大类</label>
+        <select id="fCourse"></select>
+      </div>
+
+      <div class="form-row" id="groupRow" style="display:none;">
+        <label>所属小组 <span class="hint">（该课程的小组）</span></label>
+        <select id="fGroup"></select>
+      </div>
+
+      <div class="form-row">
+        <label>所属作业 / 项目</label>
+        <input type="text" id="fAssignment" placeholder="如：小组项目 / 学期论文">
+      </div>
+      <div class="form-row">
+        <label id="nameLabel">任务名称</label>
+        <input type="text" id="fName" placeholder="如：课堂展示">
+      </div>
+      <div class="form-row">
+        <label id="dueLabel">截止时间</label>
+        <input type="datetime-local" id="fDue">
+      </div>
+      <div class="form-row form-row-2col">
+        <div>
+          <label>属性</label>
+          <select id="fType">
+            <option value="individual">个人</option>
+            <option value="group">小组</option>
+          </select>
+        </div>
+        <div>
+          <label>权重 / 数字</label>
+          <input type="text" id="fWeight" placeholder="如：40%">
+        </div>
+      </div>
+      <div class="form-row">
+        <label>地点 <span class="hint">（选填）</span></label>
+        <input type="text" id="fLocation" placeholder="如：KB803 / Moodle / 东京">
+      </div>
+      <div class="form-row">
+        <label>详情链接 <span class="hint">（选填）</span></label>
+        <input type="url" id="fLink" placeholder="https://...">
+      </div>
+      <div class="form-row">
+        <div class="attachments-head">
+          <span>附件 <span class="hint">（图片 / PDF，单文件 ≤ 10MB）</span></span>
+          <button class="btn-sm" id="addAttachmentBtn" type="button">+ 上传</button>
+        </div>
+        <div class="att-list" id="attList"></div>
+        <input type="file" id="attFileInput" accept="image/*,application/pdf" multiple style="display:none;">
+      </div>
+      <div class="form-row">
+        <label>备注</label>
+        <textarea id="fNote" placeholder="提醒、注意事项等"></textarea>
+      </div>
+      <div class="form-row" id="progressRow">
+        <label>进度</label>
+        <div class="progress-slider-row">
+          <input type="range" id="fProgress" min="0" max="100" step="5" value="0">
+          <span class="progress-val" id="fProgressVal">0%</span>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="subtasks-head">
+          <span id="subtaskTitle">子任务</span>
+          <button class="btn-sm" id="addSubtaskBtn" type="button">+ 添加子任务</button>
+        </div>
+        <ul class="subtask-list" id="subtaskList"></ul>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn-danger" id="deleteBtn" type="button">删除</button>
+      <div style="flex:1"></div>
+      <button class="btn btn-ghost" id="cancelBtn" type="button">取消</button>
+      <button class="btn btn-primary" id="saveBtn" type="button">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- 课程模态框 -->
+<div class="modal-backdrop" id="courseModalBackdrop">
+  <div class="modal">
+    <div class="modal-head">
+      <h3 id="courseModalTitle">添加课程</h3>
+      <button id="courseModalClose" type="button">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row form-row-2col">
+        <div>
+          <label>课程代码</label>
+          <input type="text" id="scCode" placeholder="如：URBP6006">
+        </div>
+        <div>
+          <label>星期</label>
+          <select id="scDay">
+            <option value="1">周一</option>
+            <option value="2">周二</option>
+            <option value="3">周三</option>
+            <option value="4">周四</option>
+            <option value="5">周五</option>
+            <option value="6">周六</option>
+            <option value="7">周日</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <label>课程名称</label>
+        <input type="text" id="scName" placeholder="如：Planning, Managing & Financing">
+      </div>
+      <div class="form-row form-row-2col">
+        <div>
+          <label>开始时间</label>
+          <input type="time" id="scStart" value="10:00">
+        </div>
+        <div>
+          <label>结束时间</label>
+          <input type="time" id="scEnd" value="12:00">
+        </div>
+      </div>
+      <div class="form-row">
+        <label>地点</label>
+        <input type="text" id="scLoc" placeholder="如：CYCC 501">
+      </div>
+      <div class="form-row">
+        <label>教师（选填）</label>
+        <input type="text" id="scTeacher" placeholder="如：Bo-sin Tang">
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn-danger" id="deleteCourseBtn" type="button">删除</button>
+      <div style="flex:1"></div>
+      <button class="btn btn-ghost" id="courseCancelBtn" type="button">取消</button>
+      <button class="btn btn-primary" id="courseSaveBtn" type="button">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- 小组模态框 -->
+<div class="modal-backdrop" id="groupModalBackdrop">
+  <div class="modal">
+    <div class="modal-head">
+      <h3 id="groupModalTitle">添加小组</h3>
+      <button id="groupModalClose" type="button">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row form-row-2col">
+        <div>
+          <label>所属课程 / 大类</label>
+          <select id="gCourse"></select>
+        </div>
+        <div>
+          <label>组号</label>
+          <input type="text" id="gNum" placeholder="如：3">
+        </div>
+      </div>
+      <div class="form-row">
+        <label>组员 <span class="hint">（输入名字后按回车添加）</span></label>
+        <div class="member-chips" id="memberChips"></div>
+        <input type="text" class="member-input" id="memberInput" placeholder="输入名字后按回车…">
+      </div>
+      <div class="form-row">
+        <label>备注（选填）</label>
+        <textarea id="gNotes" placeholder="如：组长是谁、分工备注等"></textarea>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn-danger" id="deleteGroupBtn" type="button">删除</button>
+      <div style="flex:1"></div>
+      <button class="btn btn-ghost" id="groupCancelBtn" type="button">取消</button>
+      <button class="btn btn-primary" id="groupSaveBtn" type="button">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- 管理大类 -->
+<div class="modal-backdrop" id="coursesModalBackdrop">
+  <div class="modal wide">
+    <div class="modal-head">
+      <h3>管理任务大类</h3>
+      <button id="coursesModalClose" type="button">×</button>
+    </div>
+    <div class="modal-body">
+      <p style="font-size:12px;color:#64748b;margin-bottom:12px;">
+        修改名称、颜色，或增删大类。"类型"决定视觉风格：学术=彩色，个人学习=青蓝，生活事务=灰淡。
+      </p>
+      <table class="courses-table">
+        <thead>
+          <tr>
+            <th style="width:80px;">代码</th>
+            <th>显示名称</th>
+            <th style="width:100px;">类型</th>
+            <th style="width:60px;">颜色</th>
+            <th style="width:36px;"></th>
+          </tr>
+        </thead>
+        <tbody id="coursesTableBody"></tbody>
+      </table>
+      <button class="btn-sm" id="addCourseBtn" type="button" style="padding:6px 14px;font-size:12.5px;">+ 添加新大类</button>
+    </div>
+    <div class="modal-foot">
+      <div style="flex:1"></div>
+      <button class="btn btn-ghost" id="coursesCancelBtn" type="button">取消</button>
+      <button class="btn btn-primary" id="coursesSaveBtn" type="button">保存</button>
+    </div>
+  </div>
+</div>
+
+<div class="lightbox" id="lightbox">
+  <button class="lightbox-close" id="lightboxClose" type="button">×</button>
+  <img id="lightboxImg" src="" alt="">
+</div>
+
+<div class="upload-toast" id="uploadToast">正在处理文件…</div>
+
+<script>
+(function () {
+  'use strict';
+
+  /* ============ IndexedDB 附件 ============ */
+  const DB_NAME = 'task-manager-db', DB_VERSION = 1, STORE_NAME = 'attachments';
+  let dbPromise = null;
+  function openDB() {
+    if (dbPromise) return dbPromise;
+    dbPromise = new Promise((resolve, reject) => {
+      const req = indexedDB.open(DB_NAME, DB_VERSION);
+      req.onupgradeneeded = e => {
+        const db = e.target.result;
+        if (!db.objectStoreNames.contains(STORE_NAME))
+          db.createObjectStore(STORE_NAME, { keyPath: 'id' });
+      };
+      req.onsuccess = e => resolve(e.target.result);
+      req.onerror = e => reject(e.target.error);
+    });
+    return dbPromise;
+  }
+  const attachmentCache = new Map();
+  async function loadAllAttachments() {
+    try {
+      const db = await openDB();
+      return new Promise((resolve, reject) => {
+        const req = db.transaction(STORE_NAME, 'readonly').objectStore(STORE_NAME).getAll();
+        req.onsuccess = () => { (req.result || []).forEach(a => attachmentCache.set(a.id, a)); resolve(); };
+        req.onerror = () => reject(req.error);
+      });
+    } catch (e) { console.error(e); }
+  }
+  async function saveAttachmentToDB(att) {
+    attachmentCache.set(att.id, att);
+    const db = await openDB();
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction(STORE_NAME, 'readwrite');
+      tx.objectStore(STORE_NAME).put(att);
+      tx.oncomplete = resolve;
+      tx.onerror = () => reject(tx.error);
+    });
+  }
+  async function deleteAttachmentFromDB(id) {
+    attachmentCache.delete(id);
+    const db = await openDB();
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction(STORE_NAME, 'readwrite');
+      tx.objectStore(STORE_NAME).delete(id);
+      tx.oncomplete = resolve;
+      tx.onerror = () => reject(tx.error);
+    });
+  }
+
+  /* ============ 默认大类 ============ */
+  // kind: academic（学术课程） / learning（个人学习） / life（生活事务）
+  const DEFAULT_COURSES = [
+    { key: "URBP7008", name: "Studio Part 02",          kind: "academic", color: "#27ae60" },
+    { key: "MHMP8008", name: "Transitional Cities",     kind: "academic", color: "#e74c3c" },
+    { key: "URBP6006", name: "Planning & Financing",    kind: "academic", color: "#3498db" },
+    { key: "URBP7011", name: "International Bay Areas", kind: "academic", color: "#9b59b6" },
+    { key: "URBP6865", name: "Dissertation",            kind: "academic", color: "#f39c12" },
+    { key: "LEARNING", name: "个人学习",                kind: "learning", color: "#06b6d4" },
+    { key: "LIFE",     name: "生活事务",                kind: "life",     color: "#94a3b8" },
+  ];
+
+  /* ============ 默认任务 ============ */
+  const DEFAULT_TASKS = [
+    /* URBP7008 */
+    { id: "ur7008-1", type: "task", deadlineType: "hard", course: "URBP7008", groupId: "g-ur7008",
+      assignment: "路演 Roadshow", name: "路演工作计划提交",
+      due: "2026-09-18T18:00", weight: "5%", type2: "group",
+      location: "Moodle", link: "", note: "提交至 Moodle",
+      progress: 0, subtasks: [], attachmentIds: [], done: false },
+    { id: "ur7008-2a", type: "task", deadlineType: "soft", course: "URBP7008", groupId: "g-ur7008",
+      assignment: "路演 Roadshow", name: "现场路演 · 第一天",
+      due: "2026-09-24T09:00", weight: "5%", type2: "group",
+      location: "葵青实地", link: "", note: "全组到场",
+      progress: 0, subtasks: [], attachmentIds: [], done: false },
+    { id: "ur7008-2b", type: "task", deadlineType: "soft", course: "URBP7008", groupId: "g-ur7008",
+      assignment: "路演 Roadshow", name: "现场路演 · 第二天",
+      due: "2026-09-29T09:00", weight: "5%", type2: "group",
+      location: "葵青实地", link: "", note: "全组到场",
+      progress: 0, subtasks: [], attachmentIds: [], done: false },
+    { id: "ur7008-3", type: "task", deadlineType: "hard", course: "URBP7008", groupId: "g-ur7008",
+      assignment: "路演 Roadshow", name: "路演中期汇报",
+      due: "2026-10-08T10:00", weight: "5%", type2: "group",
+      location: "KB730", link: "", note: "20 分钟 PPT + 15 分钟讨论",
+      progress: 0, subtasks: [], attachmentIds: [], done: false },
+    { id: "ur7008-4", type: "task", deadlineType: "hard", course: "URBP7008", groupId: "g-ur7008",
+      assignment: "社区工作坊", name: "工作坊工作计划提交",
+      due: "2026-10-23T18:00", weight: "15%", type2: "group",
+      location: "Moodle", link: "", note: "⚠️ 当天上午有毕业论文答辩",
+      progress: 0, subtasks: [], attachmentIds: [], done: false },
+    { id: "ur7008-5", type: "task", deadlineType: "soft", course: "URBP7008", groupId: "g-ur7008",
+      assignment: "社区工作坊", name: "现场工作坊",
+      due: "2026-11-14T09:00", weight: "15%", type2: "group",
+      location: "待定", link: "", note: "MURP 时间地点待定",
+      progress: 0, subtasks: [], attachmentIds: [], done: false },
+    { id: "ur7008-6", type: "task", deadlineType: "hard", course: "URBP7008", groupId: "g-ur7008",
+      assignment: "社区工作坊", name: "工作坊发现汇报",
+      due: "2026-11-19T10:00", weight: "15%", type2: "group",
+      location: "KB820", link: "", note: "⚠️ 当天还有 MHMP8008 学期论文截止",
+      progress: 0, subtasks: [], attachmentIds: [], done: false },
+    { id: "ur7008-7", type: "task", deadlineType: "hard", course: "URBP7008", groupId: "g-ur7008",
+      assignment: "DDP + CBSAP 草案", name: "草案中期汇报",
+      due: "2026-11-05T10:00", weight: "20%", type2: "group",
+      location: "KB820", link: "", note: "Draft DDP + CBSAP",
+      progress: 0, subtasks: [], attachmentIds: [], done: false },
+    { id: "ur7008-8", type: "task", deadlineType: "hard", course: "URBP7008", groupId: "g-ur7008",
+      assignment: "最终计划", name: "最终汇报 SDP+DDP+CBSAP",
+      due: "2026-12-03T10:00", weight: "20%", type2: "group",
+      location: "KB820", link: "", note: "全天",
+      progress: 0, subtasks: [], attachmentIds: [], done: false },
+    { id: "ur7008-9", type: "task", deadlineType: "hard", course: "URBP7008", groupId: "g-ur7008",
+      assignment: "最终计划", name: "最终报告提交",
+      due: "2026-12-07T12:00", weight: "20%", type2: "group",
+      location: "Moodle", link: "", note: "≤ 40 页 A4",
+      progress: 0, subtasks: [], attachmentIds: [], done: false },
+
+    /* MHMP8008 */
+    { id: "mhmp-1", type: "task", deadlineType: "soft", course: "MHMP8008", groupId: "g-mhmp",
+      assignment: "小组项目", name: "课堂展示",
+      due: "2026-11-18T15:00", weight: "40%", type2: "group",
+      location: "CBC LG1/F", link: "", note: "18 或 19 日",
+      progress: 0, subtasks: [], attachmentIds: [], done: false },
+    { id: "mhmp-2", type: "task", deadlineType: "hard", course: "MHMP8008", groupId: "g-mhmp",
+      assignment: "小组项目", name: "小组报告提交",
+      due: "2026-11-26T23:59", weight: "40%", type2: "group",
+      location: "Moodle", link: "", note: "≤ 3000 字",
+      progress: 0, subtasks: [], attachmentIds: [], done: false },
+    { id: "mhmp-3", type: "task", deadlineType: "hard", course: "MHMP8008",
+      assignment: "学期论文", name: "个人学期论文",
+      due: "2026-11-19T23:59", weight: "45%", type2: "individual",
+      location: "纸质 + 电子版", link: "",
+      note: "2500 字。⚠️ 当天还有 URBP7008 汇报",
+      progress: 0, subtasks: [], attachmentIds: [], done: false },
+
+    /* URBP6006 */
+    { id: "ur6006-1", type: "task", deadlineType: "hard", course: "URBP6006", groupId: "g-ur6006",
+      assignment: "期中短文", name: "期中个人短文",
+      due: "2026-10-19T23:59", weight: "15%", type2: "individual",
+      location: "Moodle", link: "", note: "≤ 500 字",
+      progress: 0, subtasks: [], attachmentIds: [], done: false },
+    { id: "ur6006-2", type: "task", deadlineType: "hard", course: "URBP6006",
+      assignment: "反思论文", name: "个人反思论文",
+      due: "2026-11-30T23:59", weight: "30%", type2: "individual",
+      location: "Moodle", link: "", note: "≤ 1500 字",
+      progress: 0, subtasks: [], attachmentIds: [], done: false },
+    { id: "ur6006-3", type: "task", deadlineType: "hard", course: "URBP6006", groupId: "g-ur6006",
+      assignment: "小组学期论文", name: "小组学期论文",
+      due: "2026-12-14T23:59", weight: "40%", type2: "group",
+      location: "Moodle", link: "", note: "每人 ≤ 800 字",
+      progress: 0, subtasks: [], attachmentIds: [], done: false },
+
+    /* URBP7011 */
+    { id: "bay-1", type: "event", deadlineType: "soft", course: "URBP7011", groupId: "g-bay",
+      assignment: "东京实地考察", name: "抵达东京",
+      due: "2026-10-10T12:00", weight: "20%", type2: "individual",
+      location: "东京 Shinagawa Prince Hotel", link: "",
+      note: "全日程 10/10 - 10/15",
+      progress: 0, subtasks: [], attachmentIds: [], done: false },
+    { id: "bay-1pre", type: "event", deadlineType: "soft", course: "URBP7011",
+      assignment: "东京实地考察", name: "提前抵达东京（自选）",
+      due: "2026-10-09T12:00", weight: "—", type2: "individual",
+      location: "东京", link: "",
+      note: "10/9 没课，可提前一天去",
+      progress: 0, subtasks: [], attachmentIds: [], done: false },
+    { id: "bay-2", type: "event", deadlineType: "soft", course: "URBP7011",
+      assignment: "东京实地考察", name: "返港",
+      due: "2026-10-15T23:59", weight: "20%", type2: "individual",
+      location: "东京 → 香港", link: "", note: "",
+      progress: 0, subtasks: [], attachmentIds: [], done: false },
+    { id: "bay-3", type: "task", deadlineType: "hard", course: "URBP7011", groupId: "g-bay",
+      assignment: "考察总结展示", name: "小组总结展示（Round 1）",
+      due: "2026-11-11T10:00", weight: "30%", type2: "group",
+      location: "MWT3", link: "",
+      note: "Round 2 在 11 月 18 日；15 分钟口头汇报",
+      progress: 0, subtasks: [], attachmentIds: [], done: false },
+    { id: "bay-4", type: "task", deadlineType: "hard", course: "URBP7011", groupId: "g-bay",
+      assignment: "个人反思论文", name: "个人反思论文",
+      due: "2026-11-25T10:00", weight: "50%", type2: "individual",
+      location: "Moodle", link: "",
+      note: "≤ 1000 字；任选一大主题",
+      progress: 0, subtasks: [], attachmentIds: [], done: false },
+
+    /* URBP6865 */
+    { id: "thesis-1", type: "task", deadlineType: "hard", course: "URBP6865",
+      assignment: "论文提案", name: "提交论文提案初稿（Form A2）",
+      due: "2026-09-18T18:00", weight: "10%", type2: "individual",
+      location: "DUPAD General Office", link: "",
+      note: "交 DUPAD 供导师批注",
+      progress: 0, subtasks: [], attachmentIds: [], done: false },
+    { id: "thesis-2", type: "task", deadlineType: "hard", course: "URBP6865",
+      assignment: "论文答辩", name: "论文答辩",
+      due: "2026-10-23T11:30", weight: "10%", type2: "individual",
+      location: "KB803", link: "",
+      note: "答辩时间 11:30-11:50",
+      progress: 0, subtasks: [], attachmentIds: [], done: false, milestone: true },
+    { id: "thesis-3", type: "task", deadlineType: "hard", course: "URBP6865",
+      assignment: "论文提案", name: "提交论文题目 + 修订提案（Form A3）",
+      due: "2026-11-20T18:00", weight: "10%", type2: "individual",
+      location: "DUPAD General Office", link: "",
+      note: "同时提交伦理审批初稿",
+      progress: 0, subtasks: [], attachmentIds: [], done: false },
+    { id: "thesis-4", type: "task", deadlineType: "hard", course: "URBP6865",
+      assignment: "进度报告", name: "第一份进度报告（Form A5）",
+      due: "2027-01-05T18:00", weight: "10%", type2: "individual",
+      location: "DUPAD General Office", link: "",
+      note: "同时提交最终伦理审批表",
+      progress: 0, subtasks: [], attachmentIds: [], done: false },
+    { id: "thesis-5", type: "task", deadlineType: "hard", course: "URBP6865",
+      assignment: "进度报告", name: "第二份进度报告（Form A6）",
+      due: "2027-02-26T18:00", weight: "10%", type2: "individual",
+      location: "DUPAD General Office", link: "",
+      note: "数据收集与分析进度",
+      progress: 0, subtasks: [], attachmentIds: [], done: false },
+    { id: "thesis-6", type: "task", deadlineType: "hard", course: "URBP6865",
+      assignment: "延期申请", name: "延期申请截止（Form A7）",
+      due: "2027-04-14T18:00", weight: "—", type2: "individual",
+      location: "DUPAD General Office", link: "",
+      note: "如需要才申请",
+      progress: 0, subtasks: [], attachmentIds: [], done: false },
+    { id: "thesis-7", type: "task", deadlineType: "hard", course: "URBP6865",
+      assignment: "论文写作", name: "提交论文初稿（Form A8）",
+      due: "2027-04-23T18:00", weight: "—", type2: "individual",
+      location: "DUPAD General Office", link: "",
+      note: "交导师批注",
+      progress: 0, subtasks: [], attachmentIds: [], done: false },
+    { id: "thesis-8", type: "task", deadlineType: "hard", course: "URBP6865",
+      assignment: "论文写作", name: "更改论文题目截止",
+      due: "2027-05-13T18:00", weight: "—", type2: "individual",
+      location: "DUPAD General Office", link: "", note: "",
+      progress: 0, subtasks: [], attachmentIds: [], done: false },
+    { id: "thesis-9", type: "task", deadlineType: "hard", course: "URBP6865",
+      assignment: "论文写作", name: "提交最终论文（Form A9）",
+      due: "2027-05-31T18:00", weight: "90%", type2: "individual",
+      location: "DUPAD General Office", link: "",
+      note: "两本精装 + PDF；≤ 15,000 字",
+      progress: 0, subtasks: [], attachmentIds: [], done: false },
+
+    /* 个人学习 */
+    { id: "learn-1", type: "goal", deadlineType: "soft", course: "LEARNING",
+      assignment: "语言学习", name: "法语达到 A1 水平",
+      due: "2027-01-15T23:59", weight: "—", type2: "individual",
+      location: "", link: "",
+      note: "为下学期去法国交换做准备",
+      progress: 0,
+      subtasks: [
+        { id: "s-fr-1", text: "掌握发音规则和字母表", done: false },
+        { id: "s-fr-2", text: "完成 500 个基础词汇", done: false },
+        { id: "s-fr-3", text: "能用简单句自我介绍", done: false },
+      ],
+      attachmentIds: [], done: false },
+
+    /* 生活事务 */
+    { id: "life-1", type: "event", deadlineType: "soft", course: "LIFE",
+      assignment: "个人事务", name: "回家",
+      due: "2026-09-24T18:00", weight: "—", type2: "individual",
+      location: "香港 → 家", link: "",
+      note: "记得提前订票",
+      progress: 0, subtasks: [], attachmentIds: [], done: false },
+    { id: "life-2", type: "event", deadlineType: "soft", course: "LIFE",
+      assignment: "个人事务", name: "去日本前收拾行李",
+      due: "2026-10-08T20:00", weight: "—", type2: "individual",
+      location: "", link: "",
+      note: "护照、签证、Suica 卡、常用药",
+      progress: 0, subtasks: [], attachmentIds: [], done: false },
+  ];
+
+  /* ============ 默认课表 ============ */
+  const DEFAULT_SCHEDULE = [
+    { id: "sc-1", code: "URBP6006", name: "Planning, Managing & Financing",
+      dayOfWeek: 1, startTime: "10:00", endTime: "11:50",
+      location: "CYCC 501", teacher: "Bo-sin Tang", color: "#3498db" },
+    { id: "sc-2", code: "URBP7008", name: "Studio (Main Session)",
+      dayOfWeek: 1, startTime: "15:00", endTime: "18:00",
+      location: "KB820", teacher: "Weifeng LI", color: "#27ae60" },
+    { id: "sc-3", code: "URBP7008", name: "Studio (Core Team)",
+      dayOfWeek: 4, startTime: "10:00", endTime: "13:00",
+      location: "KB820", teacher: "Weifeng LI", color: "#27ae60" },
+    { id: "sc-4", code: "URBP7008", name: "Studio (Self-Directed)",
+      dayOfWeek: 4, startTime: "15:00", endTime: "18:00",
+      location: "KB820", teacher: "—", color: "#27ae60" },
+    { id: "sc-5", code: "MHMP8008", name: "Transitional Cities",
+      dayOfWeek: 3, startTime: "15:00", endTime: "17:00",
+      location: "CBC LG1/F", teacher: "Shenjing He", color: "#e74c3c" },
+    { id: "sc-6", code: "URBP7011", name: "International Bay Areas",
+      dayOfWeek: 3, startTime: "10:00", endTime: "12:00",
+      location: "MWT3", teacher: "Clement Cheng", color: "#9b59b6" },
+  ];
+
+  /* ============ 默认小组 ============ */
+  const DEFAULT_GROUPS = [
+    { id: "g-ur7008", courseKey: "URBP7008", groupNumber: "3",
+      members: ["我", "组员 A", "组员 B", "组员 C"], notes: "" },
+    { id: "g-mhmp", courseKey: "MHMP8008", groupNumber: "2",
+      members: ["我", "组员 D", "组员 E", "组员 F"], notes: "" },
+    { id: "g-ur6006", courseKey: "URBP6006", groupNumber: "1",
+      members: ["我", "组员 G", "组员 H", "组员 I"], notes: "" },
+    { id: "g-bay", courseKey: "URBP7011", groupNumber: "4",
+      members: ["我", "组员 J", "组员 K", "组员 L"], notes: "" },
+  ];
+
+  /* ============ 存储 ============ */
+  const TASKS_KEY = "tasks-v8";
+  const COURSES_KEY = "courses-v8";
+  const SCHEDULE_KEY = "schedule-v8";
+  const GROUPS_KEY = "groups-v8";
+  const LAST_COURSE_KEY = "last-used-course";
+  const MAX_FILE_SIZE = 10 * 1024 * 1024;
+
+  let courses = loadCourses();
+  let tasks = loadTasks();
+  let schedule = loadSchedule();
+  let groups = loadGroups();
+
+  function loadCourses() {
+    try {
+      const raw = localStorage.getItem(COURSES_KEY);
+      if (raw) { const p = JSON.parse(raw); if (Array.isArray(p) && p.length) return p; }
+    } catch (e) {}
+    return JSON.parse(JSON.stringify(DEFAULT_COURSES));
+  }
+  function loadTasks() {
+    try {
+      const raw = localStorage.getItem(TASKS_KEY);
+      if (raw) {
+        const p = JSON.parse(raw);
+        if (Array.isArray(p) && p.length) {
+          p.forEach(t => {
+            if (!t.attachmentIds) t.attachmentIds = [];
+            if (!t.type) t.type = 'task';
+            if (!t.deadlineType) t.deadlineType = 'hard';
+            delete t.attachments;
+          });
+          return p;
+        }
+      }
+    } catch (e) {}
+    return JSON.parse(JSON.stringify(DEFAULT_TASKS));
+  }
+  function loadSchedule() {
+    try {
+      const raw = localStorage.getItem(SCHEDULE_KEY);
+      if (raw) { const p = JSON.parse(raw); if (Array.isArray(p)) return p; }
+    } catch (e) {}
+    return JSON.parse(JSON.stringify(DEFAULT_SCHEDULE));
+  }
+  function loadGroups() {
+    try {
+      const raw = localStorage.getItem(GROUPS_KEY);
+      if (raw) { const p = JSON.parse(raw); if (Array.isArray(p)) return p; }
+    } catch (e) {}
+    return JSON.parse(JSON.stringify(DEFAULT_GROUPS));
+  }
+
+  function persistTasks() {
+    try { localStorage.setItem(TASKS_KEY, JSON.stringify(tasks)); }
+    catch (e) { alert('存储空间不足！'); throw e; }
+  }
+  function persistCourses() { localStorage.setItem(COURSES_KEY, JSON.stringify(courses)); }
+  function persistSchedule() { localStorage.setItem(SCHEDULE_KEY, JSON.stringify(schedule)); }
+  function persistGroups() { localStorage.setItem(GROUPS_KEY, JSON.stringify(groups)); }
+
+  function getCourse(key) {
+    return courses.find(c => c.key === key) || { key, name: key, kind: "academic", color: "#94a3b8" };
+  }
+  function getGroup(id) {
+    return groups.find(g => g.id === id) || null;
+  }
+
+  /* ============ 状态 ============ */
+  const state = {
+    view: 'list',
+    course: 'all',
+    type: 'all',
+    hideDone: false,
+    calYear: new Date().getFullYear(),
+    calMonth: new Date().getMonth(),
+    weekStart: getMonday(new Date()),
+  };
+
+  let editingId = null;
+  let tempSubtasks = [];
+  let tempAttachmentIds = [];
+  let tempCourses = [];
+  let tempType = 'task';
+  let tempDeadlineType = 'hard';
+  let editingCourseId = null;
+
+  let editingGroupId = null;
+  let tempGroupMembers = [];
+
+  /* ============ 工具 ============ */
+  const pad = n => String(n).padStart(2, '0');
+  const WEEKDAYS = ["周日", "周一", "周二", "周三", "周四", "周五", "周六"];
+  const toDateKey = d => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+
+  function formatDateTime(str) {
+    const d = new Date(str);
+    if (isNaN(d)) return str;
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ` +
+           `${pad(d.getHours())}:${pad(d.getMinutes())} ${WEEKDAYS[d.getDay()]}`;
+  }
+  function formatShortDate(str) {
+    const d = new Date(str);
+    if (isNaN(d)) return str;
+    return `${pad(d.getMonth() + 1)}/${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  }
+
+  function countdownInfo(days) {
+    if (days < 0)  return { cls: "overdue", label: `已逾期 ${Math.ceil(-days)} 天` };
+    if (days < 1)  return { cls: "urgent",  label: "今天截止" };
+    if (days < 2)  return { cls: "urgent",  label: "明天截止" };
+    if (days < 4)  return { cls: "warning", label: `还剩 ${Math.floor(days)} 天` };
+    if (days < 8)  return { cls: "soon",    label: `还剩 ${Math.floor(days)} 天` };
+    return { cls: "normal", label: `还剩 ${Math.floor(days)} 天` };
+  }
+
+  function getMonday(d) {
+    const date = new Date(d);
+    date.setHours(0, 0, 0, 0);
+    const day = date.getDay();
+    const diff = (day + 6) % 7;
+    date.setDate(date.getDate() - diff);
+    return date;
+  }
+  function uid(prefix) {
+    return (prefix || 't-') + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 7);
+  }
+  function escapeHtml(s) {
+    return String(s == null ? '' : s)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+  }
+  function formatFileSize(b) {
+    if (b < 1024) return b + ' B';
+    if (b < 1024 * 1024) return (b / 1024).toFixed(1) + ' KB';
+    return (b / 1024 / 1024).toFixed(2) + ' MB';
+  }
+  function getAttachments(task) {
+    return (task.attachmentIds || []).map(id => attachmentCache.get(id)).filter(Boolean);
+  }
+  function isLifeTask(t) {
+    return getCourse(t.course).kind === 'life';
+  }
+
+  /* ============ 过滤 ============ */
+  function getFiltered() {
+    return tasks
+      .filter(t => {
+        if (state.course !== 'all' && t.course !== state.course) return false;
+        if (state.type !== 'all' && t.type !== state.type) return false;
+        if (state.hideDone && t.done) return false;
+        return true;
+      })
+      .sort((a, b) => new Date(a.due) - new Date(b.due));
+  }
+
+  function tasksOfDay(dateKey) {
+    return tasks.filter(t => {
+      if (state.course !== 'all' && t.course !== state.course) return false;
+      if (state.type !== 'all' && t.type !== state.type) return false;
+      if (state.hideDone && t.done) return false;
+      return t.due.slice(0, 10) === dateKey;
+    });
+  }
+
+  /* ============ 附件 ============ */
+  function attachmentThumbHTML(att, size) {
+    const isPdf = att.type === 'application/pdf' ||
+                  (att.name && att.name.toLowerCase().endsWith('.pdf'));
+    const cls = size === 'large' ? 'att-item' : 'att-thumb';
+    const name = escapeHtml(att.name || '');
+    const tip = size === 'large' ? '' : `<span class="att-name-tip">${name}</span>`;
+    if (isPdf) {
+      return `<div class="${cls} pdf" data-att-id="${att.id}" title="${name}">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+          <polyline points="14 2 14 8 20 8"/></svg>
+        ${size === 'large' ? `<button class="att-del" type="button" data-att-del="${att.id}">×</button>` : ''}
+        ${size === 'large' ? `<span class="att-name">${name}</span>` : tip}
+      </div>`;
+    }
+    return `<div class="${cls}" data-att-id="${att.id}" title="${name}">
+      <img src="${att.data}" alt="${name}">
+      ${size === 'large' ? `<button class="att-del" type="button" data-att-del="${att.id}">×</button>` : ''}
+      ${size === 'large' ? `<span class="att-name">${name}</span>` : tip}
+    </div>`;
+  }
+
+  /* ============ 卡片渲染 ============ */
+  function getTypeTag(t) {
+    if (t.type === 'event') return '<span class="type-tag event">📅 事件</span>';
+    if (t.type === 'goal')  return '<span class="type-tag goal">🎯 目标</span>';
+    return '<span class="type-tag task">📋 任务</span>';
+  }
+  function getDeadlineTag(t) {
+    if (t.type !== 'task') return '';
+    if (t.deadlineType === 'soft') return '<span class="deadline-tag soft">⏱ 软截止</span>';
+    return '<span class="deadline-tag hard">❗ 硬截止</span>';
+  }
+
+  function cardHTML(t) {
+    const course = getCourse(t.course);
+    const dueDate = new Date(t.due);
+    const days = (dueDate - new Date()) / 86400000;
+    const cd = countdownInfo(days);
+    const hasProgress = t.type === 'task' && (t.progress || 0) > 0;
+    const subTotal = (t.subtasks || []).length;
+    const subDone = (t.subtasks || []).filter(s => s.done).length;
+    const atts = getAttachments(t);
+    const grp = t.groupId ? getGroup(t.groupId) : null;
+
+    let countdownHTML = '';
+    if (t.type === 'task' && t.deadlineType === 'hard') {
+      countdownHTML = `<span class="countdown ${cd.cls}">❗ ${cd.label}</span>`;
+    } else if (t.type === 'task' && t.deadlineType === 'soft') {
+      const startLabel = days > 0 ? `⏱ ${Math.floor(days)} 天后开始` : `⏱ 已开始`;
+      countdownHTML = `<span class="countdown soon">${startLabel}</span>`;
+    } else if (t.type === 'event') {
+      countdownHTML = `<span class="countdown event">📅 事件</span>`;
+    } else if (t.type === 'goal') {
+      const nextSub = (t.subtasks || []).find(s => !s.done);
+      countdownHTML = nextSub
+        ? `<span class="countdown goal">🎯 下一里程碑：${escapeHtml(nextSub.text)}</span>`
+        : `<span class="countdown goal">🎯 全部完成</span>`;
+    }
+
+    return `
+      <article class="card type-${t.type} kind-${course.kind} ${t.done ? 'done' : ''} ${t.milestone ? 'milestone' : ''}"
+               style="--accent:${course.color}" data-id="${t.id}">
+        <div class="card-head">
+          <span class="badge" style="background:${course.color}1a;color:${course.color}">
+            ${escapeHtml(course.name)}
+          </span>
+          ${getTypeTag(t)}
+          ${getDeadlineTag(t)}
+          ${grp ? `<span class="group-tag">组 ${escapeHtml(grp.groupNumber)}</span>` : ''}
+          <span class="assignment-label">${escapeHtml(t.assignment || '')}</span>
+          ${t.weight ? `<span class="weight-label">${escapeHtml(t.weight)}</span>` : ''}
+        </div>
+        <h3 class="task-name" data-action="edit-name">${escapeHtml(t.name)}</h3>
+        <div class="meta-row">
+          <span class="date-display" data-action="edit-date">📅 ${formatDateTime(t.due)}</span>
+          ${t.location ? `<span class="location-display">📍 ${escapeHtml(t.location)}</span>` : ''}
+          ${t.link ? `<a class="link-btn" href="${escapeHtml(t.link)}" target="_blank" rel="noopener" onclick="event.stopPropagation()">🔗 详情</a>` : ''}
+          ${countdownHTML}
+        </div>
+        ${t.note ? `<p class="note-text">${escapeHtml(t.note)}</p>` : ''}
+        ${atts.length ? `<div class="attachments-row">${atts.map(a => attachmentThumbHTML(a, 'small')).join('')}</div>` : ''}
+        ${hasProgress ? `
+          <div class="progress-row">
+            <span>进度</span>
+            <div class="progress-bar"><div class="progress-fill" style="width:${t.progress}%"></div></div>
+            <span>${t.progress}%</span>
+          </div>` : ''}
+        ${subTotal > 0 ? `
+          <div class="progress-row">
+            <span>${t.type === 'goal' ? '里程碑' : '子任务'}</span>
+            <div class="progress-bar"><div class="progress-fill" style="width:${Math.round(subDone/subTotal*100)}%"></div></div>
+            <span>${subDone}/${subTotal}</span>
+          </div>` : ''}
+        <div class="card-actions">
+          <label class="check-done">
+            <input type="checkbox" data-action="toggle-done" ${t.done ? 'checked' : ''}>
+            <span>完成</span>
+          </label>
+          <button class="icon-btn" data-action="open-edit">✏️ 编辑</button>
+          <button class="icon-btn danger" data-action="delete">🗑 删除</button>
+        </div>
+      </article>
+    `;
+  }
+
+  function renderList() {
+    const list = getFiltered();
+    if (list.length === 0) return `<p class="empty"><div class="big">📭</div>没有匹配的任务</p>`;
+    const grouped = {};
+    list.forEach(t => {
+      const key = t.due.slice(0, 7);
+      (grouped[key] = grouped[key] || []).push(t);
+    });
+    let html = '';
+    Object.keys(grouped).sort().forEach(key => {
+      const [y, m] = key.split('-');
+      html += `<section class="month-group">
+        <h2 class="month-title">${y} 年 ${parseInt(m, 10)} 月</h2>
+        ${grouped[key].map(cardHTML).join('')}
+      </section>`;
+    });
+    return html;
+  }
+
+  /* ============ 月视图 ============ */
+  function renderMonth() {
+    const y = state.calYear, m = state.calMonth;
+    const first = new Date(y, m, 1);
+    const offset = (first.getDay() + 6) % 7;
+    const start = new Date(y, m, 1 - offset);
+    const todayKey = toDateKey(new Date());
+
+    let html = `
+      <div class="cal-nav">
+        <button data-nav="prev-month">‹ 上月</button>
+        <h2>${y} 年 ${m + 1} 月</h2>
+        <button data-nav="next-month">下月 ›</button>
+        <button class="today-btn" data-nav="today-month">今天</button>
+      </div>
+      <p style="font-size:11.5px;color:#94a3b8;margin-bottom:8px;">💡 点击日期空白处添加；点击任务可编辑</p>
+      <div class="cal-grid">
+        ${['一','二','三','四','五','六','日'].map(d => `<div class="cal-head">${d}</div>`).join('')}
+    `;
+
+    for (let i = 0; i < 42; i++) {
+      const d = new Date(start);
+      d.setDate(start.getDate() + i);
+      const key = toDateKey(d);
+      const isOther = d.getMonth() !== m;
+      const isToday = key === todayKey;
+      const dayTasks = tasksOfDay(key);
+      const shown = dayTasks.slice(0, 3);
+      const more = dayTasks.length - shown.length;
+
+      html += `<div class="cal-cell ${isOther ? 'other-month' : ''} ${isToday ? 'today' : ''}"
+                    data-date="${key}">
+        <div class="cal-day-num">${d.getDate()}</div>
+        ${shown.map(t => {
+          const c = getCourse(t.course);
+          const hhmm = t.due.slice(11, 16);
+          let marker = '';
+          if (t.type === 'task' && t.deadlineType === 'hard') marker = '<span class="mt-hard">❗</span>';
+          else if (t.type === 'task') marker = '<span class="mt-soft">⏱</span>';
+          else if (t.type === 'event') marker = '📅';
+          else if (t.type === 'goal') marker = '🎯';
+          return `<div class="mini-task type-${t.type} kind-${c.kind} ${t.done ? 'done' : ''}"
+                       style="--c:${c.color}" data-id="${t.id}">
+                    <div class="mt-row1">
+                      <span class="mt-course">${escapeHtml(t.course)}</span>
+                      <span class="mt-time">${marker} ${hhmm}</span>
+                    </div>
+                    <span class="mt-name">${escapeHtml(t.name)}</span>
+                    ${t.location ? `<span class="mt-loc">📍${escapeHtml(t.location)}</span>` : ''}
+                  </div>`;
+        }).join('')}
+        ${more > 0 ? `<div class="more-tag">+${more} 更多</div>` : ''}
+      </div>`;
+    }
+    return html + `</div>`;
+  }
+
+  /* ============ 周视图 ============ */
+  function renderWeek() {
+    const start = new Date(state.weekStart);
+    const todayKey = toDateKey(new Date());
+    const days = [];
+    for (let i = 0; i < 7; i++) {
+      const d = new Date(start);
+      d.setDate(start.getDate() + i);
+      days.push(d);
+    }
+    const startStr = toDateKey(days[0]);
+    const endStr = toDateKey(days[6]);
+
+    let html = `
+      <div class="cal-nav">
+        <button data-nav="prev-week">‹ 上周</button>
+        <h2>${startStr} ~ ${endStr}</h2>
+        <button data-nav="next-week">下周 ›</button>
+        <button class="today-btn" data-nav="today-week">本周</button>
+      </div>
+      <p style="font-size:11.5px;color:#94a3b8;margin-bottom:8px;">💡 点击某天空白处添加；点击任务可编辑</p>
+      <div class="week-grid">
+    `;
+
+    days.forEach(d => {
+      const key = toDateKey(d);
+      const isToday = key === todayKey;
+      const dayTasks = tasksOfDay(key).sort((a, b) => a.due.localeCompare(b.due));
+      html += `<div class="week-col ${isToday ? 'today' : ''}" data-date="${key}">
+        <div class="week-head"><span class="wd">${WEEKDAYS[d.getDay()]}</span><span class="dd">${d.getDate()}</span></div>
+        ${dayTasks.length === 0 ? `<div class="no-task">—</div>` :
+          dayTasks.map(t => {
+            const c = getCourse(t.course);
+            const hhmm = t.due.slice(11, 16);
+            let marker = '';
+            if (t.type === 'task' && t.deadlineType === 'hard') marker = '<span style="color:#dc2626;font-weight:700;">❗</span>';
+            else if (t.type === 'task') marker = '<span style="color:#0369a1;">⏱</span>';
+            else if (t.type === 'event') marker = '📅';
+            else if (t.type === 'goal') marker = '🎯';
+            const grp = t.groupId ? getGroup(t.groupId) : null;
+            return `<div class="week-task type-${t.type} kind-${c.kind} ${t.done ? 'done' : ''}"
+                         style="--c:${c.color}" data-id="${t.id}">
+                      <div class="wt-row1">
+                        <span class="wt-course">${escapeHtml(t.course)}</span>
+                        ${grp ? `<span style="font-size:9.5px;color:#047857;font-weight:700;">组${escapeHtml(grp.groupNumber)}</span>` : ''}
+                        <span class="wt-time">${marker} ${hhmm}</span>
+                      </div>
+                      <span class="wt-name">${escapeHtml(t.name)}</span>
+                      ${t.location ? `<span class="wt-loc">📍 ${escapeHtml(t.location)}</span>` : ''}
+                    </div>`;
+          }).join('')}
+      </div>`;
+    });
+    return html + `</div>`;
+  }
+
+  /* ============ 课表视图 ============ */
+  function renderSchedule() {
+    const todayDay = new Date().getDay() === 0 ? 7 : new Date().getDay();
+    const dayNames = ['周一','周二','周三','周四','周五','周六','周日'];
+
+    let html = `
+      <div class="cal-nav">
+        <h2>每周课表</h2>
+        <button class="today-btn" data-nav="add-course">+ 添加课程</button>
+      </div>
+      <p style="font-size:11.5px;color:#94a3b8;margin-bottom:12px;">💡 点击课程可编辑；每门课每周固定时间重复</p>
+      <div class="schedule-grid">
+    `;
+
+    for (let day = 1; day <= 7; day++) {
+      const isToday = day === todayDay;
+      const dayCourses = schedule
+        .filter(s => s.dayOfWeek === day)
+        .sort((a, b) => a.startTime.localeCompare(b.startTime));
+
+      html += `<div class="schedule-col ${isToday ? 'today' : ''}">
+        <div class="schedule-head">${dayNames[day - 1]}</div>
+        ${dayCourses.length === 0 ? `<div class="no-task">—</div>` :
+          dayCourses.map(c => {
+            const color = c.color || getCourse(c.code).color;
+            return `<div class="schedule-item" style="--c:${color}" data-schedule-id="${c.id}">
+              <button class="sc-del" type="button" data-sc-del="${c.id}">×</button>
+              <span class="sc-time">${c.startTime} - ${c.endTime}</span>
+              <span class="sc-code">${escapeHtml(c.code)}</span>
+              <span class="sc-name">${escapeHtml(c.name || '')}</span>
+              ${c.location ? `<span class="sc-loc">📍 ${escapeHtml(c.location)}</span>` : ''}
+            </div>`;
+          }).join('')}
+      </div>`;
+    }
+    return html + `</div>`;
+  }
+
+  /* ============ 小组视图 ============ */
+  function renderGroups() {
+    let html = `
+      <div class="cal-nav">
+        <h2>我参与的小组</h2>
+        <button class="today-btn" data-nav="add-group">+ 添加小组</button>
+      </div>
+      <p style="font-size:11.5px;color:#94a3b8;margin-bottom:14px;">
+        💡 每门课的小组集中管理；点击小组卡片可查看关联任务
+      </p>
+      <div class="groups-grid">
+    `;
+
+    if (groups.length === 0) {
+      html += `<p class="empty">还没有小组，点右上角「+ 添加小组」创建。</p>`;
+    } else {
+      groups.forEach(g => {
+        const course = getCourse(g.courseKey);
+        const groupTasks = tasks
+          .filter(t => t.groupId === g.id)
+          .sort((a, b) => new Date(a.due) - new Date(b.due));
+        html += `
+          <div class="group-card" style="--c:${course.color}" data-group-id="${g.id}">
+            <div class="group-card-head">
+              <span class="gc-course" style="background:${course.color}1a;color:${course.color}">
+                ${escapeHtml(g.courseKey)}
+              </span>
+              <span class="gc-num">第 ${escapeHtml(g.groupNumber)} 组</span>
+              <span class="gc-count">${groupTasks.length} 项任务</span>
+            </div>
+            <div class="gc-members">
+              <strong>成员：</strong>${g.members.map(m => escapeHtml(m)).join('、') || '（未填写）'}
+            </div>
+            ${g.notes ? `<div class="gc-members" style="font-size:11px;color:#94a3b8;">${escapeHtml(g.notes)}</div>` : ''}
+            ${groupTasks.length > 0 ? `
+              <div class="gc-tasks">
+                ${groupTasks.slice(0, 4).map(t => `
+                  <div class="gc-task-item">
+                    <span class="gti-date">${formatShortDate(t.due)}</span>
+                    <span class="gti-name">${escapeHtml(t.name)}</span>
+                  </div>
+                `).join('')}
+                ${groupTasks.length > 4 ? `<div style="font-size:10.5px;color:#94a3b8;text-align:center;">… 还有 ${groupTasks.length - 4} 项</div>` : ''}
+              </div>` : ''}
+          </div>`;
+      });
+    }
+    return html + `</div>`;
+  }
+
+  /* ============ 主渲染 ============ */
+  const app = document.getElementById('app');
+
+  function render() {
+    // 统计时排除"生活事务"
+    const academicTasks = tasks.filter(t => getCourse(t.course).kind !== 'life');
+    document.getElementById('statUpcoming').textContent =
+      academicTasks.filter(t => !t.done).length;
+    document.getElementById('statDone').textContent =
+      academicTasks.filter(t => t.done).length;
+    const nextTask = academicTasks
+      .filter(t => !t.done && t.type === 'task' && t.deadlineType === 'hard' && new Date(t.due) > new Date())
+      .sort((a, b) => new Date(a.due) - new Date(b.due))[0];
+    document.getElementById('statNext').textContent = nextTask
+      ? `${nextTask.course} · ${nextTask.name}` : '—';
+
+    const btnAdd = document.getElementById('btnAdd');
+    if (state.view === 'schedule') btnAdd.textContent = '+ 添加课程';
+    else if (state.view === 'groups') btnAdd.textContent = '+ 添加小组';
+    else btnAdd.textContent = '+ 添加任务';
+
+    if (state.view === 'list')          app.innerHTML = renderList();
+    else if (state.view === 'month')    app.innerHTML = renderMonth();
+    else if (state.view === 'week')     app.innerHTML = renderWeek();
+    else if (state.view === 'schedule') app.innerHTML = renderSchedule();
+    else if (state.view === 'groups')   app.innerHTML = renderGroups();
+  }
+
+  /* ============ 视图切换 ============ */
+  document.getElementById('viewSwitch').addEventListener('click', e => {
+    const btn = e.target.closest('button[data-view]');
+    if (!btn) return;
+    document.querySelectorAll('#viewSwitch button').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    state.view = btn.dataset.view;
+    render();
+  });
+
+  /* ============ 大类筛选 ============ */
+  function buildCourseFilters() {
+    const wrap = document.getElementById('courseFilters');
+    let html = `<button class="chip active" data-course="all">全部</button>`;
+    courses.forEach(c => {
+      html += `<button class="chip" data-course="${escapeHtml(c.key)}">${escapeHtml(c.key)}</button>`;
+    });
+    wrap.innerHTML = html;
+    wrap.addEventListener('click', e => {
+      const btn = e.target.closest('button[data-course]');
+      if (!btn) return;
+      wrap.querySelectorAll('.chip').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      state.course = btn.dataset.course;
+      render();
+    });
+  }
+  buildCourseFilters();
+
+  /* ============ 类型筛选 ============ */
+  document.getElementById('typeFilters').addEventListener('click', e => {
+    const btn = e.target.closest('button[data-type]');
+    if (!btn) return;
+    document.querySelectorAll('#typeFilters .chip').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    state.type = btn.dataset.type;
+    render();
+  });
+
+  document.getElementById('hideDone').addEventListener('change', e => {
+    state.hideDone = e.target.checked;
+    render();
+  });
+
+  document.getElementById('btnReset').addEventListener('click', () => {
+    if (!confirm('确定重置？所有修改与附件将丢失。')) return;
+    courses = JSON.parse(JSON.stringify(DEFAULT_COURSES));
+    tasks = JSON.parse(JSON.stringify(DEFAULT_TASKS));
+    schedule = JSON.parse(JSON.stringify(DEFAULT_SCHEDULE));
+    groups = JSON.parse(JSON.stringify(DEFAULT_GROUPS));
+    persistCourses(); persistTasks(); persistSchedule(); persistGroups();
+    attachmentCache.forEach((_, id) => deleteAttachmentFromDB(id).catch(() => {}));
+    attachmentCache.clear();
+    buildCourseFilters();
+    render();
+  });
+
+  document.getElementById('btnAdd').addEventListener('click', () => {
+    if (state.view === 'schedule') openCourseModal(null);
+    else if (state.view === 'groups') openGroupModal(null);
+    else openModal(null);
+  });
+
+  /* ============ 主区域点击 ============ */
+  app.addEventListener('click', e => {
+    // 附件
+    const attThumb = e.target.closest('[data-att-id]');
+    if (attThumb && !attThumb.closest('.att-list')) {
+      e.stopPropagation();
+      const att = attachmentCache.get(attThumb.dataset.attId);
+      if (att) openAttachment(att);
+      return;
+    }
+
+    // 课程删除
+    const scDel = e.target.closest('[data-sc-del]');
+    if (scDel) {
+      e.stopPropagation();
+      const id = scDel.dataset.scDel;
+      const c = schedule.find(x => x.id === id);
+      if (c && confirm(`确定删除「${c.code} ${c.name}」？`)) {
+        schedule = schedule.filter(x => x.id !== id);
+        persistSchedule(); render();
+      }
+      return;
+    }
+    // 点击课程
+    const scItem = e.target.closest('[data-schedule-id]');
+    if (scItem) { openCourseModal(scItem.dataset.scheduleId); return; }
+
+    // 点击小组卡片
+    const groupCard = e.target.closest('[data-group-id]');
+    if (groupCard) {
+      openGroupModal(groupCard.dataset.groupId);
+      return;
+    }
+
+    // 导航
+    const navBtn = e.target.closest('[data-nav]');
+    if (navBtn) {
+      const act = navBtn.dataset.nav;
+      if (act === 'prev-month') { state.calMonth--; if (state.calMonth < 0) { state.calMonth = 11; state.calYear--; } render(); return; }
+      if (act === 'next-month') { state.calMonth++; if (state.calMonth > 11) { state.calMonth = 0; state.calYear++; } render(); return; }
+      if (act === 'today-month') { const n = new Date(); state.calYear = n.getFullYear(); state.calMonth = n.getMonth(); render(); return; }
+      if (act === 'prev-week') { state.weekStart = new Date(state.weekStart); state.weekStart.setDate(state.weekStart.getDate() - 7); render(); return; }
+      if (act === 'next-week') { state.weekStart = new Date(state.weekStart); state.weekStart.setDate(state.weekStart.getDate() + 7); render(); return; }
+      if (act === 'today-week') { state.weekStart = getMonday(new Date()); render(); return; }
+      if (act === 'add-course') { openCourseModal(null); return; }
+      if (act === 'add-group') { openGroupModal(null); return; }
+    }
+
+    // 任务点击
+    const mini = e.target.closest('.mini-task, .week-task');
+    if (mini && mini.dataset.id) {
+      e.stopPropagation();
+      openModal(mini.dataset.id);
+      return;
+    }
+
+    // 日历空白
+    const calCell = e.target.closest('.cal-cell[data-date]');
+    if (calCell && state.view === 'month') { openModal(null, calCell.dataset.date); return; }
+    const weekCol = e.target.closest('.week-col[data-date]');
+    if (weekCol && state.view === 'week') { openModal(null, weekCol.dataset.date); return; }
+
+    // 卡片操作
+    const actionBtn = e.target.closest('[data-action]');
+    if (!actionBtn) return;
+    const card = actionBtn.closest('[data-id]');
+    if (!card) return;
+    const task = tasks.find(t => t.id === card.dataset.id);
+    if (!task) return;
+    const act = actionBtn.dataset.action;
+    if (act === 'edit-name') { inlineEditName(card, task); return; }
+    if (act === 'edit-date') { inlineEditDate(card, task); return; }
+    if (act === 'toggle-done') {
+      task.done = actionBtn.checked;
+      persistTasks(); render();
+      return;
+    }
+    if (act === 'open-edit') { openModal(task.id); return; }
+    if (act === 'delete') {
+      if (confirm(`确定删除「${task.name}」？`)) {
+        (task.attachmentIds || []).forEach(id => deleteAttachmentFromDB(id).catch(() => {}));
+        tasks = tasks.filter(t => t.id !== task.id);
+        persistTasks(); render();
+      }
+      return;
+    }
+  });
+
+  /* ============ 附件打开 ============ */
+  function openAttachment(att) {
+    const isPdf = att.type === 'application/pdf' ||
+                  (att.name && att.name.toLowerCase().endsWith('.pdf'));
+    if (isPdf) {
+      const w = window.open();
+      if (w) w.document.write(
+        `<html><head><title>${escapeHtml(att.name)}</title></head>` +
+        `<body style="margin:0"><iframe src="${att.data}" style="border:0;width:100vw;height:100vh;"></iframe></body></html>`
+      );
+    } else {
+      const lb = document.getElementById('lightbox');
+      document.getElementById('lightboxImg').src = att.data;
+      lb.classList.add('show');
+    }
+  }
+  document.getElementById('lightbox').addEventListener('click', e => {
+    if (e.target.id === 'lightbox' || e.target.id === 'lightboxClose') {
+      document.getElementById('lightbox').classList.remove('show');
+      document.getElementById('lightboxImg').src = '';
+    }
+  });
+
+  /* ============ 内联编辑 ============ */
+  function inlineEditName(card, task) {
+    const nameEl = card.querySelector('.task-name');
+    if (!nameEl) return;
+    const input = document.createElement('input');
+    input.className = 'inline-input';
+    input.value = task.name;
+    nameEl.replaceWith(input);
+    input.focus(); input.select();
+    let finished = false;
+    const finish = save => {
+      if (finished) return;
+      finished = true;
+      if (save) { const v = input.value.trim(); if (v) { task.name = v; persistTasks(); } }
+      render();
+    };
+    input.addEventListener('blur', () => finish(true));
+    input.addEventListener('keydown', ev => {
+      if (ev.key === 'Enter') { ev.preventDefault(); finish(true); }
+      if (ev.key === 'Escape') { ev.preventDefault(); finish(false); }
+    });
+  }
+  function inlineEditDate(card, task) {
+    const dateEl = card.querySelector('.date-display');
+    if (!dateEl) return;
+    const input = document.createElement('input');
+    input.type = 'datetime-local';
+    input.className = 'inline-input';
+    input.value = task.due;
+    dateEl.replaceWith(input);
+    input.focus();
+    let finished = false;
+    const finish = save => {
+      if (finished) return;
+      finished = true;
+      if (save) { const v = input.value.trim(); if (v) { task.due = v; persistTasks(); } }
+      render();
+    };
+    input.addEventListener('blur', () => finish(true));
+    input.addEventListener('keydown', ev => {
+      if (ev.key === 'Enter') { ev.preventDefault(); finish(true); }
+      if (ev.key === 'Escape') { ev.preventDefault(); finish(false); }
+    });
+  }
+
+  /* ============ 任务模态框 ============ */
+  const modalBackdrop = document.getElementById('modalBackdrop');
+  const fCourse = document.getElementById('fCourse');
+  const fGroup = document.getElementById('fGroup');
+  const groupRow = document.getElementById('groupRow');
+  const fAssignment = document.getElementById('fAssignment');
+  const fName = document.getElementById('fName');
+  const fDue = document.getElementById('fDue');
+  const fType = document.getElementById('fType');
+  const fWeight = document.getElementById('fWeight');
+  const fLocation = document.getElementById('fLocation');
+  const fLink = document.getElementById('fLink');
+  const fNote = document.getElementById('fNote');
+  const fProgress = document.getElementById('fProgress');
+  const fProgressVal = document.getElementById('fProgressVal');
+  const subtaskList = document.getElementById('subtaskList');
+  const attList = document.getElementById('attList');
+  const attFileInput = document.getElementById('attFileInput');
+  const uploadToast = document.getElementById('uploadToast');
+  const typePicker = document.getElementById('typePicker');
+  const deadlinePicker = document.getElementById('deadlinePicker');
+  const deadlineTypeRow = document.getElementById('deadlineTypeRow');
+  const progressRow = document.getElementById('progressRow');
+  const subtaskTitle = document.getElementById('subtaskTitle');
+  const nameLabel = document.getElementById('nameLabel');
+  const dueLabel = document.getElementById('dueLabel');
+
+  let modalOpenedAt = 0;
+  let tempGroupId = '';
+
+  function rebuildCourseSelect(selectedKey) {
+    fCourse.innerHTML = courses.map(c =>
+      `<option value="${escapeHtml(c.key)}">${escapeHtml(c.key)} · ${escapeHtml(c.name)}</option>`
+    ).join('');
+    if (selectedKey && courses.find(c => c.key === selectedKey)) fCourse.value = selectedKey;
+    rebuildGroupSelect();
+  }
+  function rebuildGroupSelect() {
+    const courseKey = fCourse.value;
+    const courseGroups = groups.filter(g => g.courseKey === courseKey);
+    if (courseGroups.length === 0) {
+      groupRow.style.display = 'none';
+      fGroup.innerHTML = '';
+      return;
+    }
+    groupRow.style.display = '';
+    let html = `<option value="">— 不属于小组 —</option>`;
+    courseGroups.forEach(g => {
+      html += `<option value="${escapeHtml(g.id)}">第 ${escapeHtml(g.groupNumber)} 组 · ${g.members.length} 人</option>`;
+    });
+    fGroup.innerHTML = html;
+    if (tempGroupId && courseGroups.find(g => g.id === tempGroupId)) {
+      fGroup.value = tempGroupId;
+    } else {
+      fGroup.value = '';
+    }
+  }
+  fCourse.addEventListener('change', () => {
+    tempGroupId = '';
+    rebuildGroupSelect();
+  });
+  fGroup.addEventListener('change', () => { tempGroupId = fGroup.value; });
+
+  fProgress.addEventListener('input', () => {
+    fProgressVal.textContent = fProgress.value + '%';
+  });
+
+  typePicker.addEventListener('click', e => {
+    const btn = e.target.closest('button[data-type-val]');
+    if (!btn) return;
+    tempType = btn.dataset.typeVal;
+    updateTypeUI();
+  });
+  deadlinePicker.addEventListener('click', e => {
+    const btn = e.target.closest('button[data-dl-val]');
+    if (!btn) return;
+    tempDeadlineType = btn.dataset.dlVal;
+    updateTypeUI();
+  });
+
+  function updateTypeUI() {
+    typePicker.querySelectorAll('button').forEach(b => {
+      b.classList.toggle('active', b.dataset.typeVal === tempType);
+    });
+    deadlinePicker.querySelectorAll('button').forEach(b => {
+      b.classList.toggle('active', b.dataset.dlVal === tempDeadlineType);
+    });
+    deadlineTypeRow.style.display = tempType === 'task' ? '' : 'none';
+    progressRow.style.display = tempType === 'task' ? '' : 'none';
+    if (tempType === 'task') {
+      nameLabel.textContent = tempDeadlineType === 'hard' ? '任务名称' : '活动名称';
+      dueLabel.textContent = tempDeadlineType === 'hard' ? '截止时间' : '开始时间';
+      subtaskTitle.textContent = '子任务';
+    } else if (tempType === 'event') {
+      nameLabel.textContent = '事件名称';
+      dueLabel.textContent = '发生时间';
+      subtaskTitle.textContent = '补充说明（可选）';
+    } else if (tempType === 'goal') {
+      nameLabel.textContent = '目标名称';
+      dueLabel.textContent = '期望达成时间';
+      subtaskTitle.textContent = '里程碑';
+    }
+  }
+
+  document.getElementById('addSubtaskBtn').addEventListener('click', () => {
+    tempSubtasks.push({ id: uid('s-'), text: '', done: false });
+    renderSubtasks();
+    const inputs = subtaskList.querySelectorAll('input[type="text"]');
+    if (inputs.length) inputs[inputs.length - 1].focus();
+  });
+  function renderSubtasks() {
+    subtaskList.innerHTML = tempSubtasks.map(s => `
+      <li class="subtask-item" data-sub-id="${s.id}">
+        <input type="checkbox" ${s.done ? 'checked' : ''} data-sub-toggle>
+        <input type="text" value="${escapeHtml(s.text)}" placeholder="${tempType === 'goal' ? '里程碑名称' : '子任务名称'}" data-sub-text>
+        <button class="del-sub" type="button" data-sub-del>×</button>
+      </li>
+    `).join('');
+  }
+  function renderAttachments() {
+    const atts = tempAttachmentIds.map(id => attachmentCache.get(id)).filter(Boolean);
+    attList.innerHTML = atts.map(a => attachmentThumbHTML(a, 'large')).join('');
+  }
+
+  subtaskList.addEventListener('click', e => {
+    const li = e.target.closest('.subtask-item');
+    if (!li) return;
+    const sub = tempSubtasks.find(s => s.id === li.dataset.subId);
+    if (!sub) return;
+    if (e.target.matches('[data-sub-del]')) {
+      tempSubtasks = tempSubtasks.filter(s => s.id !== sub.id);
+      renderSubtasks();
+    } else if (e.target.matches('[data-sub-toggle]')) {
+      sub.done = e.target.checked;
+    }
+  });
+  subtaskList.addEventListener('input', e => {
+    if (!e.target.matches('[data-sub-text]')) return;
+    const li = e.target.closest('.subtask-item');
+    const sub = tempSubtasks.find(s => s.id === li.dataset.subId);
+    if (sub) sub.text = e.target.value;
+  });
+
+  document.getElementById('addAttachmentBtn').addEventListener('click', () => attFileInput.click());
+  attFileInput.addEventListener('change', e => {
+    const files = Array.from(e.target.files || []);
+    if (!files.length) return;
+    uploadToast.textContent = `正在处理 ${files.length} 个文件…`;
+    uploadToast.classList.add('show');
+    let pending = files.length, success = 0;
+    files.forEach(file => {
+      if (file.size > MAX_FILE_SIZE) {
+        alert(`「${file.name}」超过 10MB（${formatFileSize(file.size)}）。`);
+        pending--;
+        if (pending === 0) finishUpload();
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = async ev => {
+        const att = {
+          id: uid('a-'), name: file.name,
+          type: file.type || 'application/octet-stream',
+          size: file.size, data: ev.target.result,
+        };
+        try {
+          await saveAttachmentToDB(att);
+          tempAttachmentIds.push(att.id);
+          renderAttachments();
+          success++;
+        } catch (err) { alert(`保存失败：${err.message || err}`); }
+        pending--;
+        if (pending === 0) finishUpload();
+      };
+      reader.onerror = () => { alert(`读取「${file.name}」失败`); pending--; if (pending === 0) finishUpload(); };
+      reader.readAsDataURL(file);
+    });
+    function finishUpload() {
+      uploadToast.classList.remove('show');
+      attFileInput.value = '';
+      if (success > 0) {
+        uploadToast.textContent = `已上传 ${success} 个文件`;
+        uploadToast.classList.add('show');
+        setTimeout(() => uploadToast.classList.remove('show'), 1500);
+      }
+    }
+  });
+
+  attList.addEventListener('click', e => {
+    if (e.target.matches('[data-att-del]')) {
+      e.stopPropagation();
+      const id = e.target.dataset.attDel;
+      if (!confirm('确定删除该附件？')) return;
+      tempAttachmentIds = tempAttachmentIds.filter(x => x !== id);
+      deleteAttachmentFromDB(id).catch(() => {});
+      renderAttachments();
+      return;
+    }
+    const item = e.target.closest('[data-att-id]');
+    if (item) {
+      const att = attachmentCache.get(item.dataset.attId);
+      if (att) openAttachment(att);
+    }
+  });
+
+  function openModal(taskId, presetDate) {
+    editingId = taskId;
+
+    if (taskId) {
+      const t = tasks.find(x => x.id === taskId);
+      if (!t) return;
+      document.getElementById('modalTitle').textContent = '编辑';
+      rebuildCourseSelect(t.course);
+      tempGroupId = t.groupId || '';
+      rebuildGroupSelect();
+      fAssignment.value = t.assignment || '';
+      fName.value = t.name || '';
+      fDue.value = t.due || '';
+      fType.value = t.type2 || 'individual';
+      fWeight.value = t.weight || '';
+      fLocation.value = t.location || '';
+      fLink.value = t.link || '';
+      fNote.value = t.note || '';
+      fProgress.value = t.progress || 0;
+      fProgressVal.textContent = (t.progress || 0) + '%';
+      tempType = t.type || 'task';
+      tempDeadlineType = t.deadlineType || 'hard';
+      tempSubtasks = JSON.parse(JSON.stringify(t.subtasks || []));
+      tempAttachmentIds = (t.attachmentIds || []).slice();
+      document.getElementById('deleteBtn').style.display = '';
+    } else {
+      document.getElementById('modalTitle').textContent = '添加';
+      const lastCourse = localStorage.getItem(LAST_COURSE_KEY);
+      rebuildCourseSelect(courses.find(c => c.key === lastCourse) ? lastCourse : courses[0].key);
+      tempGroupId = '';
+      fAssignment.value = '';
+      fName.value = '';
+      if (presetDate) {
+        fDue.value = `${presetDate}T23:59`;
+      } else {
+        const d = new Date();
+        d.setDate(d.getDate() + 1);
+        fDue.value = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T23:59`;
+      }
+      fType.value = 'individual';
+      fWeight.value = '';
+      fLocation.value = '';
+      fLink.value = '';
+      fNote.value = '';
+      fProgress.value = 0;
+      fProgressVal.textContent = '0%';
+      tempType = 'task';
+      tempDeadlineType = 'hard';
+      tempSubtasks = [];
+      tempAttachmentIds = [];
+      document.getElementById('deleteBtn').style.display = 'none';
+    }
+    updateTypeUI();
+    renderSubtasks();
+    renderAttachments();
+    modalOpenedAt = Date.now();
+    modalBackdrop.classList.add('show');
+    setTimeout(() => { if (modalBackdrop.classList.contains('show')) fName.focus(); }, 80);
+  }
+
+  function closeModal() {
+    modalBackdrop.classList.remove('show');
+    editingId = null;
+    tempSubtasks = [];
+    tempAttachmentIds = [];
+    tempGroupId = '';
+  }
+
+  document.getElementById('modalClose').addEventListener('click', closeModal);
+  document.getElementById('cancelBtn').addEventListener('click', closeModal);
+
+  let backdropMousedownOnSelf = false;
+  modalBackdrop.addEventListener('mousedown', e => {
+    if (Date.now() - modalOpenedAt < 300) { backdropMousedownOnSelf = false; return; }
+    backdropMousedownOnSelf = (e.target === modalBackdrop);
+  });
+  modalBackdrop.addEventListener('mouseup', e => {
+    if (backdropMousedownOnSelf && e.target === modalBackdrop) closeModal();
+    backdropMousedownOnSelf = false;
+  });
+
+  document.addEventListener('keydown', e => {
+    if (e.key !== 'Escape') return;
+    const active = document.activeElement;
+    if (active && (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA' || active.tagName === 'SELECT')) {
+      active.blur(); return;
+    }
+    if (modalBackdrop.classList.contains('show')) { closeModal(); return; }
+    if (courseModalBackdrop.classList.contains('show')) { closeCourseModal(); return; }
+    if (groupModalBackdrop.classList.contains('show')) { closeGroupModal(); return; }
+    if (coursesModalBackdrop.classList.contains('show')) { closeCoursesModal(); return; }
+    document.getElementById('lightbox').classList.remove('show');
+  });
+
+  document.getElementById('saveBtn').addEventListener('click', () => {
+    const name = fName.value.trim();
+    if (!name) { alert('请填写名称'); fName.focus(); return; }
+    const due = fDue.value;
+    if (!due) { alert('请选择时间'); fDue.focus(); return; }
+
+    const payload = {
+      type: tempType,
+      deadlineType: tempType === 'task' ? tempDeadlineType : 'soft',
+      course: fCourse.value,
+      groupId: fGroup.value || '',
+      assignment: fAssignment.value.trim(),
+      name, due,
+      type2: fType.value,
+      weight: fWeight.value.trim(),
+      location: fLocation.value.trim(),
+      link: fLink.value.trim(),
+      note: fNote.value.trim(),
+      progress: tempType === 'task' ? (parseInt(fProgress.value, 10) || 0) : 0,
+      subtasks: tempSubtasks.filter(s => s.text.trim()).map(s => ({
+        id: s.id, text: s.text.trim(), done: !!s.done
+      })),
+      attachmentIds: tempAttachmentIds.slice(),
+    };
+
+    localStorage.setItem(LAST_COURSE_KEY, fCourse.value);
+
+    if (editingId) {
+      const t = tasks.find(x => x.id === editingId);
+      if (t) Object.assign(t, payload);
+    } else {
+      tasks.push(Object.assign({ id: uid(), done: false }, payload));
+    }
+    try { persistTasks(); } catch (err) { return; }
+    closeModal();
+    render();
+  });
+
+  document.getElementById('deleteBtn').addEventListener('click', () => {
+    if (!editingId) return;
+    const t = tasks.find(x => x.id === editingId);
+    if (!t) return;
+    if (!confirm(`确定删除「${t.name}」？`)) return;
+    (t.attachmentIds || []).forEach(id => deleteAttachmentFromDB(id).catch(() => {}));
+    tasks = tasks.filter(x => x.id !== editingId);
+    persistTasks(); closeModal(); render();
+  });
+
+  /* ============ 课程模态框 ============ */
+  const courseModalBackdrop = document.getElementById('courseModalBackdrop');
+  const scCode = document.getElementById('scCode');
+  const scName = document.getElementById('scName');
+  const scDay = document.getElementById('scDay');
+  const scStart = document.getElementById('scStart');
+  const scEnd = document.getElementById('scEnd');
+  const scLoc = document.getElementById('scLoc');
+  const scTeacher = document.getElementById('scTeacher');
+  let courseModalOpenedAt = 0;
+
+  function openCourseModal(id) {
+    editingCourseId = id;
+    if (id) {
+      const c = schedule.find(x => x.id === id);
+      if (!c) return;
+      document.getElementById('courseModalTitle').textContent = '编辑课程';
+      scCode.value = c.code || '';
+      scName.value = c.name || '';
+      scDay.value = c.dayOfWeek || 1;
+      scStart.value = c.startTime || '10:00';
+      scEnd.value = c.endTime || '12:00';
+      scLoc.value = c.location || '';
+      scTeacher.value = c.teacher || '';
+      document.getElementById('deleteCourseBtn').style.display = '';
+    } else {
+      document.getElementById('courseModalTitle').textContent = '添加课程';
+      scCode.value = ''; scName.value = ''; scDay.value = 1;
+      scStart.value = '10:00'; scEnd.value = '12:00';
+      scLoc.value = ''; scTeacher.value = '';
+      document.getElementById('deleteCourseBtn').style.display = 'none';
+    }
+    courseModalOpenedAt = Date.now();
+    courseModalBackdrop.classList.add('show');
+    setTimeout(() => scCode.focus(), 80);
+  }
+  function closeCourseModal() {
+    courseModalBackdrop.classList.remove('show');
+    editingCourseId = null;
+  }
+  document.getElementById('courseModalClose').addEventListener('click', closeCourseModal);
+  document.getElementById('courseCancelBtn').addEventListener('click', closeCourseModal);
+  let courseBackdropMousedownOnSelf = false;
+  courseModalBackdrop.addEventListener('mousedown', e => {
+    if (Date.now() - courseModalOpenedAt < 300) { courseBackdropMousedownOnSelf = false; return; }
+    courseBackdropMousedownOnSelf = (e.target === courseModalBackdrop);
+  });
+  courseModalBackdrop.addEventListener('mouseup', e => {
+    if (courseBackdropMousedownOnSelf && e.target === courseModalBackdrop) closeCourseModal();
+    courseBackdropMousedownOnSelf = false;
+  });
+
+  document.getElementById('courseSaveBtn').addEventListener('click', () => {
+    const code = scCode.value.trim();
+    if (!code) { alert('请填写课程代码'); scCode.focus(); return; }
+    const payload = {
+      code,
+      name: scName.value.trim(),
+      dayOfWeek: parseInt(scDay.value, 10),
+      startTime: scStart.value,
+      endTime: scEnd.value,
+      location: scLoc.value.trim(),
+      teacher: scTeacher.value.trim(),
+      color: getCourse(code).color,
+    };
+    if (editingCourseId) {
+      const c = schedule.find(x => x.id === editingCourseId);
+      if (c) Object.assign(c, payload);
+    } else {
+      schedule.push(Object.assign({ id: uid('sc-') }, payload));
+    }
+    persistSchedule(); closeCourseModal(); render();
+  });
+  document.getElementById('deleteCourseBtn').addEventListener('click', () => {
+    if (!editingCourseId) return;
+    const c = schedule.find(x => x.id === editingCourseId);
+    if (!c) return;
+    if (!confirm(`确定删除「${c.code} ${c.name}」？`)) return;
+    schedule = schedule.filter(x => x.id !== editingCourseId);
+    persistSchedule(); closeCourseModal(); render();
+  });
+
+  /* ============ 小组模态框 ============ */
+  const groupModalBackdrop = document.getElementById('groupModalBackdrop');
+  const gCourse = document.getElementById('gCourse');
+  const gNum = document.getElementById('gNum');
+  const gNotes = document.getElementById('gNotes');
+  const memberChips = document.getElementById('memberChips');
+  const memberInput = document.getElementById('memberInput');
+  let groupModalOpenedAt = 0;
+
+  function rebuildGroupCourseSelect(selectedKey) {
+    gCourse.innerHTML = courses.map(c =>
+      `<option value="${escapeHtml(c.key)}">${escapeHtml(c.key)} · ${escapeHtml(c.name)}</option>`
+    ).join('');
+    if (selectedKey) gCourse.value = selectedKey;
+  }
+
+  function renderMemberChips() {
+    memberChips.innerHTML = tempGroupMembers.map((m, i) => `
+      <span class="member-chip">
+        ${escapeHtml(m)}
+        <button type="button" data-rm-member="${i}" title="移除">×</button>
+      </span>
+    `).join('');
+  }
+
+  memberChips.addEventListener('click', e => {
+    const btn = e.target.closest('[data-rm-member]');
+    if (!btn) return;
+    const idx = parseInt(btn.dataset.rmMember, 10);
+    tempGroupMembers.splice(idx, 1);
+    renderMemberChips();
+  });
+
+  memberInput.addEventListener('keydown', e => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      const v = memberInput.value.trim();
+      if (v && !tempGroupMembers.includes(v)) {
+        tempGroupMembers.push(v);
+        renderMemberChips();
+      }
+      memberInput.value = '';
+    }
+  });
+
+  function openGroupModal(id) {
+    editingGroupId = id;
+    if (id) {
+      const g = groups.find(x => x.id === id);
+      if (!g) return;
+      document.getElementById('groupModalTitle').textContent = '编辑小组';
+      rebuildGroupCourseSelect(g.courseKey);
+      gNum.value = g.groupNumber || '';
+      tempGroupMembers = g.members.slice();
+      gNotes.value = g.notes || '';
+      document.getElementById('deleteGroupBtn').style.display = '';
+    } else {
+      document.getElementById('groupModalTitle').textContent = '添加小组';
+      rebuildGroupCourseSelect(courses[0].key);
+      gNum.value = '';
+      tempGroupMembers = [];
+      gNotes.value = '';
+      document.getElementById('deleteGroupBtn').style.display = 'none';
+    }
+    renderMemberChips();
+    memberInput.value = '';
+    groupModalOpenedAt = Date.now();
+    groupModalBackdrop.classList.add('show');
+    setTimeout(() => gNum.focus(), 80);
+  }
+  function closeGroupModal() {
+    groupModalBackdrop.classList.remove('show');
+    editingGroupId = null;
+    tempGroupMembers = [];
+  }
+
+  document.getElementById('groupModalClose').addEventListener('click', closeGroupModal);
+  document.getElementById('groupCancelBtn').addEventListener('click', closeGroupModal);
+  let groupBackdropMousedownOnSelf = false;
+  groupModalBackdrop.addEventListener('mousedown', e => {
+    if (Date.now() - groupModalOpenedAt < 300) { groupBackdropMousedownOnSelf = false; return; }
+    groupBackdropMousedownOnSelf = (e.target === groupModalBackdrop);
+  });
+  groupModalBackdrop.addEventListener('mouseup', e => {
+    if (groupBackdropMousedownOnSelf && e.target === groupModalBackdrop) closeGroupModal();
+    groupBackdropMousedownOnSelf = false;
+  });
+
+  document.getElementById('groupSaveBtn').addEventListener('click', () => {
+    const num = gNum.value.trim();
+    if (!num) { alert('请填写组号'); gNum.focus(); return; }
+    const payload = {
+      courseKey: gCourse.value,
+      groupNumber: num,
+      members: tempGroupMembers.slice(),
+      notes: gNotes.value.trim(),
+    };
+    if (editingGroupId) {
+      const g = groups.find(x => x.id === editingGroupId);
+      if (g) Object.assign(g, payload);
+    } else {
+      groups.push(Object.assign({ id: uid('g-') }, payload));
+    }
+    persistGroups(); closeGroupModal(); render();
+  });
+  document.getElementById('deleteGroupBtn').addEventListener('click', () => {
+    if (!editingGroupId) return;
+    const g = groups.find(x => x.id === editingGroupId);
+    if (!g) return;
+    const linkedCount = tasks.filter(t => t.groupId === editingGroupId).length;
+    let msg = `确定删除「第 ${g.groupNumber} 组」？`;
+    if (linkedCount > 0) msg += `\n\n该小组下有 ${linkedCount} 个任务，删除后它们会保留，但不再关联小组。`;
+    if (!confirm(msg)) return;
+    // 解绑任务
+    tasks.forEach(t => { if (t.groupId === editingGroupId) t.groupId = ''; });
+    groups = groups.filter(x => x.id !== editingGroupId);
+    persistGroups(); persistTasks();
+    closeGroupModal(); render();
+  });
+
+  /* ============ 管理大类 ============ */
+  const coursesModalBackdrop = document.getElementById('coursesModalBackdrop');
+  const coursesTableBody = document.getElementById('coursesTableBody');
+  let coursesModalOpenedAt = 0;
+
+  function renderCoursesTable() {
+    coursesTableBody.innerHTML = tempCourses.map((c, i) => `
+      <tr data-idx="${i}">
+        <td><span class="key">${escapeHtml(c.key)}</span></td>
+        <td><input type="text" value="${escapeHtml(c.name)}" data-field="name"></td>
+        <td>
+          <select data-field="kind">
+            <option value="academic" ${c.kind === 'academic' ? 'selected' : ''}>学术</option>
+            <option value="learning" ${c.kind === 'learning' ? 'selected' : ''}>个人学习</option>
+            <option value="life" ${c.kind === 'life' ? 'selected' : ''}>生活事务</option>
+          </select>
+        </td>
+        <td><input type="color" value="${escapeHtml(c.color)}" data-field="color"></td>
+        <td><button class="del-row" type="button" data-del-course>×</button></td>
+      </tr>
+    `).join('');
+  }
+
+  document.getElementById('btnManageCourses').addEventListener('click', () => {
+    tempCourses = JSON.parse(JSON.stringify(courses));
+    renderCoursesTable();
+    coursesModalOpenedAt = Date.now();
+    coursesModalBackdrop.classList.add('show');
+  });
+  function closeCoursesModal() {
+    coursesModalBackdrop.classList.remove('show');
+    tempCourses = [];
+  }
+  document.getElementById('coursesModalClose').addEventListener('click', closeCoursesModal);
+  document.getElementById('coursesCancelBtn').addEventListener('click', closeCoursesModal);
+  let coursesBackdropMousedownOnSelf = false;
+  coursesModalBackdrop.addEventListener('mousedown', e => {
+    if (Date.now() - coursesModalOpenedAt < 300) { coursesBackdropMousedownOnSelf = false; return; }
+    coursesBackdropMousedownOnSelf = (e.target === coursesModalBackdrop);
+  });
+  coursesModalBackdrop.addEventListener('mouseup', e => {
+    if (coursesBackdropMousedownOnSelf && e.target === coursesModalBackdrop) closeCoursesModal();
+    coursesBackdropMousedownOnSelf = false;
+  });
+
+  coursesTableBody.addEventListener('input', e => {
+    const tr = e.target.closest('tr');
+    if (!tr) return;
+    const idx = parseInt(tr.dataset.idx, 10);
+    if (e.target.matches('[data-field="name"]')) tempCourses[idx].name = e.target.value;
+    else if (e.target.matches('[data-field="color"]')) tempCourses[idx].color = e.target.value;
+    else if (e.target.matches('[data-field="kind"]')) tempCourses[idx].kind = e.target.value;
+  });
+  coursesTableBody.addEventListener('change', e => {
+    const tr = e.target.closest('tr');
+    if (!tr) return;
+    const idx = parseInt(tr.dataset.idx, 10);
+    if (e.target.matches('[data-field="kind"]')) tempCourses[idx].kind = e.target.value;
+  });
+
+  coursesTableBody.addEventListener('click', e => {
+    if (e.target.matches('[data-del-course]')) {
+      const tr = e.target.closest('tr');
+      const idx = parseInt(tr.dataset.idx, 10);
+      const c = tempCourses[idx];
+      const count = tasks.filter(t => t.course === c.key).length;
+      if (count > 0 && !confirm(`「${c.name}」下还有 ${count} 个任务。删除后这些任务会归到第一个大类。确认删除？`)) return;
+      tempCourses.splice(idx, 1);
+      if (tempCourses.length === 0) {
+        alert('至少需要保留一个大类');
+        tempCourses = JSON.parse(JSON.stringify(courses));
+      }
+      renderCoursesTable();
+    }
+  });
+
+  document.getElementById('addCourseBtn').addEventListener('click', () => {
+    const key = prompt('请输入新大类的代码（如 SPORT / HEALTH）:');
+    if (!key) return;
+    const t = key.trim().toUpperCase().replace(/\s+/g, '_');
+    if (!t) return;
+    if (tempCourses.find(c => c.key === t)) { alert('该代码已存在'); return; }
+    tempCourses.push({ key: t, name: t, kind: 'learning', color: "#888888" });
+    renderCoursesTable();
+  });
+
+  document.getElementById('coursesSaveBtn').addEventListener('click', () => {
+    if (tempCourses.length === 0) { alert('至少需要保留一个大类'); return; }
+    for (const c of tempCourses) {
+      if (!c.name.trim()) { alert('大类名称不能为空'); return; }
+      if (!c.kind) c.kind = 'academic';
+    }
+    const validKeys = tempCourses.map(c => c.key);
+    const fallback = validKeys[0];
+    tasks.forEach(t => { if (!validKeys.includes(t.course)) t.course = fallback; });
+    courses = JSON.parse(JSON.stringify(tempCourses));
+    persistCourses(); persistTasks();
+    buildCourseFilters();
+    closeCoursesModal(); render();
+  });
+
+  /* ============ 启动 ============ */
+  render();
+  loadAllAttachments().then(() => render()).catch(err => console.error(err));
+
+})();
+</script>
+<script>
+/* ===== 导出 / 导入（独立运行，不依赖其他代码） ===== */
+(function () {
+  const TASKS_KEY = 'tasks-v8';
+  const COURSES_KEY = 'courses-v8';
+  const SCHEDULE_KEY = 'schedule-v8';
+  const GROUPS_KEY = 'groups-v8';
+  const DB_NAME = 'task-manager-db';
+  const DB_VERSION = 1;
+  const STORE_NAME = 'attachments';
+
+  function openDB() {
+    return new Promise((resolve, reject) => {
+      const req = indexedDB.open(DB_NAME, DB_VERSION);
+      req.onupgradeneeded = e => {
+        const db = e.target.result;
+        if (!db.objectStoreNames.contains(STORE_NAME))
+          db.createObjectStore(STORE_NAME, { keyPath: 'id' });
+      };
+      req.onsuccess = e => resolve(e.target.result);
+      req.onerror = e => reject(e.target.error);
+    });
+  }
+
+  function readLS(key) {
+    try { return JSON.parse(localStorage.getItem(key) || 'null'); }
+    catch (e) { return null; }
+  }
+
+  function pad(n) { return String(n).padStart(2, '0'); }
+
+  async function exportAll() {
+    const data = {
+      version: 1,
+      exportedAt: new Date().toISOString(),
+      tasks: readLS(TASKS_KEY),
+      courses: readLS(COURSES_KEY),
+      schedule: readLS(SCHEDULE_KEY),
+      groups: readLS(GROUPS_KEY),
+      attachments: [],
+    };
+    try {
+      const db = await openDB();
+      data.attachments = await new Promise((res, rej) => {
+        const req = db.transaction(STORE_NAME, 'readonly').objectStore(STORE_NAME).getAll();
+        req.onsuccess = () => res(req.result || []);
+        req.onerror = () => rej(req.error);
+      });
+    } catch (e) {
+      console.warn('附件导出失败', e);
+    }
+
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    const d = new Date();
+    a.download = `task-backup-${d.getFullYear()}${pad(d.getMonth()+1)}${pad(d.getDate())}-${pad(d.getHours())}${pad(d.getMinutes())}.json`;
+    a.href = url;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
+
+  async function importAll(file) {
+    const text = await file.text();
+    let data;
+    try { data = JSON.parse(text); }
+    catch (err) { alert('文件格式错误：不是有效的 JSON'); return; }
+
+    if (!data || typeof data !== 'object') { alert('数据格式错误'); return; }
+    if (!confirm('导入将覆盖当前所有数据（包括附件）。确定继续？')) return;
+
+    if (data.tasks !== undefined)    localStorage.setItem(TASKS_KEY, JSON.stringify(data.tasks));
+    if (data.courses !== undefined)  localStorage.setItem(COURSES_KEY, JSON.stringify(data.courses));
+    if (data.schedule !== undefined) localStorage.setItem(SCHEDULE_KEY, JSON.stringify(data.schedule));
+    if (data.groups !== undefined)   localStorage.setItem(GROUPS_KEY, JSON.stringify(data.groups));
+
+    if (Array.isArray(data.attachments)) {
+      try {
+        const db = await openDB();
+        await new Promise((res, rej) => {
+          const tx = db.transaction(STORE_NAME, 'readwrite');
+          tx.objectStore(STORE_NAME).clear();
+          tx.oncomplete = res;
+          tx.onerror = () => rej(tx.error);
+        });
+        await new Promise((res, rej) => {
+          const tx = db.transaction(STORE_NAME, 'readwrite');
+          const store = tx.objectStore(STORE_NAME);
+          data.attachments.forEach(att => {
+            if (att && att.id && att.data) store.put(att);
+          });
+          tx.oncomplete = res;
+          tx.onerror = () => rej(tx.error);
+        });
+      } catch (err) {
+        console.warn('附件导入失败', err);
+      }
+    }
+
+    alert('✅ 导入成功，页面将刷新');
+    location.reload();
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    const btnExport = document.getElementById('btnExport');
+    const btnImport = document.getElementById('btnImport');
+    const fileInput = document.getElementById('importFileInput');
+
+    if (btnExport) btnExport.addEventListener('click', exportAll);
+
+    if (btnImport && fileInput) {
+      btnImport.addEventListener('click', () => fileInput.click());
+      fileInput.addEventListener('change', async e => {
+        const file = e.target.files && e.target.files[0];
+        e.target.value = '';
+        if (file) await importAll(file);
+      });
+    }
+
+    if (!btnExport) console.warn('[导出按钮] 找不到 #btnExport，请检查工具栏是否添加');
+    if (!btnImport) console.warn('[导入按钮] 找不到 #btnImport，请检查工具栏是否添加');
+  });
+})();
+</script>
+<input type="file" id="importFileInput" accept=".json,application/json" style="display:none;">
+</body>
+</html>
